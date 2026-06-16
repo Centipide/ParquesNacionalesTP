@@ -14,6 +14,143 @@ USE ParquesNacionales
 GO
 
 -- ==========================================================
+-- TABLA Parque
+-- ==========================================================
+CREATE OR ALTER PROCEDURE Parques.sp_AltaParque
+    @idTipoParque INT,
+    @nombre       VARCHAR(50),
+    @localidad    VARCHAR(50),
+    @provincia    VARCHAR(30),
+    @superficie   DECIMAL(10,2)
+AS
+BEGIN
+    SET NOCOUNT ON
+    DECLARE @errores VARCHAR(1000) = ''
+
+    IF NOT EXISTS(
+        SELECT 1 FROM Parques.TipoParque
+        WHERE idTipoParque = @idTipoParque
+    )
+    SET @errores += '- El tipo de parque no existe.' + CHAR(10)
+
+    IF ISNULL(@nombre,'') = ''
+    SET @errores += '- Falta ingresar nombre.' + CHAR(10)
+
+    IF ISNULL(@localidad,'') = ''
+    SET @errores += '- Falta ingresar localidad.' + CHAR(10)
+
+    IF ISNULL(@provincia,'') = ''
+    SET @errores += '- Falta ingresar provincia.' + CHAR(10)
+
+    IF @superficie <= 0
+    SET @errores += '- Superficie ingresada no valida.' + CHAR(10)
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1)
+        RETURN
+    END
+
+    INSERT INTO Parques.Parque
+        (idTipoParque, nombre, localidad, provincia, superficie)
+    VALUES
+        (@idTipoParque, @nombre, @localidad, @provincia, @superficie)
+    
+    SELECT SCOPE_IDENTITY() AS idParqueNuevo
+END
+GO
+
+
+CREATE OR ALTER sp_ModificacionParque
+    @idParque     INT,
+    @idTipoParque INT,
+    @nombre       VARCHAR(50),
+    @localidad    VARCHAR(50),
+    @provincia    VARCHAR(30),
+    @superficie   DECIMAL(10,2)
+AS
+BEGIN
+    SET NOCOUNT ON
+    DECLARE @errores VARHCAR(1000) = ''
+
+    IF NOT EXISTS(
+        SELECT 1 FROM Parques.Parque
+        WHERE idParque = @idParque
+    )
+    SET @errores += '- El parque ingresado no existe.' + CHAR(10)
+
+    IF NOT EXISTS(
+        SELECT 1 FROM Parques.TipoParque
+        WHERE idTipoParque = @idTipoParque
+    )
+    SET @errores += '- El tipo de parque ingresado no existe.' + CHAR(10)
+
+    IF @superficie <= 0
+    SET @errores += '- Superficie ingresada no valida.' + CHAR(10)
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1)
+        RETURN
+    END
+
+    UPDATE Parques.Parque
+    SET TipoParque = @TipoParque, nombre = @nombre, localidad = @localidad,
+        provincia = @provincia, superficie = @superficie
+    WHERE idParque = @idParque
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE sp_BajaParque
+    @idParque INT
+AS
+BEGIN
+    SET NOCOUNT ON
+    DECLARE @errores VARCHAR(1000) = ''
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Parques.Parque
+        WHERE idParque = @idParque
+    )
+    SET @errores += 'No existe el parque ingresado.' + CHAR(10)
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Actividades.ActividadTuristica
+        WHERE idParque = @idParque
+    )
+    SET @errores += 'No se puede eliminar porque existen Actividades Turisticas en el parque.' + CHAR(10)
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Personal.HistorialGuardaparque
+        WHERE idParque = @idParque
+    )
+    SET @errores += 'No se puede eliminar porque existen Historial de Guardaparque en el parque.' + CHAR(10)
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Concesiones.Concesion
+        WHERE idParque = @idParque
+    )
+    SET @errores += 'No se puede eliminar porque existen Concesiones en el parque.' + CHAR(10)
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Ventas.Entrada
+        WHERE idParque = @idParque
+    )
+    SET @errores += 'No se puede eliminar porque existen Entradas en el parque.' + CHAR(10)
+
+    IF @errores <> ''
+    BEGIN 
+        RAISERROR(@errores, 16, 1)
+        RETURN
+    END
+
+    DELETE FROM Parques.Parque
+    WHERE idParque = @idParque
+END
+GO
+
+-- ==========================================================
 -- TABLA Guardaparque
 -- ==========================================================
 CREATE OR ALTER PROCEDURE Personal.sp_AltaGuardaparque
@@ -60,7 +197,8 @@ BEGIN
     SET @errores += '- Fecha invalida.' + CHAR(10)
 
     IF @errores <> ''
-    BEGIN RAISERROR (@errores, 16, 1)
+    BEGIN
+        RAISERROR (@errores, 16, 1)
         RETURN
     END
 
@@ -107,7 +245,8 @@ BEGIN
     SET @errores += '- Documento ya existente' + CHAR(10)
 
     IF @errores <> ''
-    BEGIN RAISERROR (@errores, 16, 1)
+    BEGIN
+        RAISERROR (@errores, 16, 1)
         RETURN
     END
 
@@ -136,7 +275,8 @@ BEGIN
     SET @errores += '- Guardaparque no existe.' + CHAR(10)
 
     IF @errores <> ''
-    BEGIN RAISERROR (@errores, 16, 1)
+    BEGIN
+        RAISERROR (@errores, 16, 1)
         RETURN
     END
 
@@ -175,7 +315,8 @@ BEGIN
     SET @errores += '- Fecha de agreso no puede ser menor a ingreso' + CHAR(10)
 
     IF @errores <> ''
-    BEGIN RAISERROR (@errores, 16, 1)
+    BEGIN
+        RAISERROR (@errores, 16, 1)
         RETURN
     END
 
@@ -216,7 +357,8 @@ BEGIN
     SET @errores += '- Fecha de agreso no puede ser menor a ingreso' + CHAR(10)
 
     IF @errores <> ''
-    BEGIN RAISERROR (@errores, 16, 1)
+    BEGIN
+        RAISERROR (@errores, 16, 1)
         RETURN
     END
 
@@ -242,7 +384,8 @@ BEGIN
     SET @errores += '- Historial de Guardaparque no existe.' + CHAR(10)
 
     IF @errores <> ''
-    BEGIN RAISERROR (@errores, 16, 1)
+    BEGIN
+        RAISERROR (@errores, 16, 1)
         RETURN
     END
 
