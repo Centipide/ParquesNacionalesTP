@@ -7,12 +7,12 @@
       "RelativeMoniker": "D:0:0:{3AE7FB20-A7AE-1E59-5387-D07FD6239515}|ParquesNacionales.ssmssqlproj|solutionrelative:07_logicaRegistroActividades.sql||{B5A506EB-11BE-4782-9A18-21265C2CA0B4}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{3AE7FB20-A7AE-1E59-5387-D07FD6239515}|ParquesNacionales.ssmssqlproj|C:\\Users\\pedro\\source\\repos\\ParquesNacionales\\ParquesNacionalesTP\\03_ABM.sql||{B5A506EB-11BE-4782-9A18-21265C2CA0B4}",
-      "RelativeMoniker": "D:0:0:{3AE7FB20-A7AE-1E59-5387-D07FD6239515}|ParquesNacionales.ssmssqlproj|solutionrelative:03_ABM.sql||{B5A506EB-11BE-4782-9A18-21265C2CA0B4}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{3AE7FB20-A7AE-1E59-5387-D07FD6239515}|ParquesNacionales.ssmssqlproj|C:\\Users\\pedro\\source\\repos\\ParquesNacionales\\ParquesNacionalesTP\\02_creacionTablas.sql||{B5A506EB-11BE-4782-9A18-21265C2CA0B4}",
       "RelativeMoniker": "D:0:0:{3AE7FB20-A7AE-1E59-5387-D07FD6239515}|ParquesNacionales.ssmssqlproj|solutionrelative:02_creacionTablas.sql||{B5A506EB-11BE-4782-9A18-21265C2CA0B4}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3AE7FB20-A7AE-1E59-5387-D07FD6239515}|ParquesNacionales.ssmssqlproj|C:\\Users\\pedro\\source\\repos\\ParquesNacionales\\ParquesNacionalesTP\\03_ABM.sql||{B5A506EB-11BE-4782-9A18-21265C2CA0B4}",
+      "RelativeMoniker": "D:0:0:{3AE7FB20-A7AE-1E59-5387-D07FD6239515}|ParquesNacionales.ssmssqlproj|solutionrelative:03_ABM.sql||{B5A506EB-11BE-4782-9A18-21265C2CA0B4}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{3AE7FB20-A7AE-1E59-5387-D07FD6239515}|ParquesNacionales.ssmssqlproj|C:\\Users\\pedro\\source\\repos\\ParquesNacionales\\ParquesNacionalesTP\\01_setup.sql||{B5A506EB-11BE-4782-9A18-21265C2CA0B4}",
@@ -45,7 +45,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "02_creacionTablas.sql - Cent\\SQLEXPRESS01.ParquesNacionales (CENT\\pedro (85))",
               "DocumentMoniker": "C:\\Users\\pedro\\source\\repos\\ParquesNacionales\\ParquesNacionalesTP\\02_creacionTablas.sql",
               "RelativeDocumentMoniker": "02_creacionTablas.sql",
@@ -56,7 +56,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "03_ABM.sql - Cent\\SQLEXPRESS01.ParquesNacionales (CENT\\pedro (55))",
               "DocumentMoniker": "C:\\Users\\pedro\\source\\repos\\ParquesNacionales\\ParquesNacionalesTP\\03_ABM.sql",
               "RelativeDocumentMoniker": "03_ABM.sql",

@@ -188,19 +188,21 @@ CREATE TABLE Actividades.GuiaAutorizacion (
 );
 GO
 
-CREATE TABLE Actividades.GuiaActividadRealizada (
-    idGuiaActividadRealizada INT          IDENTITY(1,1) NOT NULL,
-    idGuia                   INT          NOT NULL,
-    idActividadTuristica     INT          NOT NULL,
-    fecha                    DATE         NOT NULL,
-    horaInicio               TIME         NOT NULL,
-    observaciones            VARCHAR(300) NULL,
+CREATE TABLE Actividades.ActividadProgramada (
+    idActividadProgramada   INT          IDENTITY(1,1),
+    idGuia                  INT          NOT NULL,
+    idActividadTuristica    INT          NOT NULL,
+    fecha                   DATE         NOT NULL,
+    horaInicio              TIME         NOT NULL,
+    estado                  VARCHAR(20)  NOT NULL DEFAULT 'Programada',
+    observaciones           VARCHAR(300) NULL,
 
-    CONSTRAINT PK_GuiaActRealizada PRIMARY KEY (idGuiaActividadRealizada),
-    CONSTRAINT FK_GAR_Guia FOREIGN KEY (idGuia)
+    CONSTRAINT PK_ActProg PRIMARY KEY (idActividadProgramada),
+    CONSTRAINT FK_ActProg_Guia FOREIGN KEY (idGuia)
         REFERENCES Guias.Guia (idGuia),
-    CONSTRAINT FK_GAR_Actividad FOREIGN KEY (idActividadTuristica)
-        REFERENCES Actividades.ActividadTuristica (idActividadTuristica)
+    CONSTRAINT FK_ActProg_Actividad FOREIGN KEY (idActividadTuristica)
+        REFERENCES Actividades.ActividadTuristica (idActividadTuristica),
+    CONSTRAINT CK_ActProg_Estado CHECK (estado IN ('Programada','Realizada','Cancelada'))
 );
 GO
 
@@ -356,20 +358,26 @@ CREATE TABLE Actividades.DetalleContratacion (
 GO
 
 CREATE TABLE Actividades.Contratacion (
-    idContratacion        INT           IDENTITY(1,1),
-    idDetalleContratacion INT           NOT NULL, 
-    idActividadTuristica  INT           NOT NULL,
-    costo                 DECIMAL(10,2) NOT NULL,
-    estado                VARCHAR(20)   NOT NULL DEFAULT 'Confirmada',
-    cantidadPersonas      INT           NOT NULL,
+    idContratacion         INT           IDENTITY(1,1),
+    idDetalleContratacion  INT           NOT NULL,
+    idActividadProgramada  INT           NOT NULL,
+    costo                  DECIMAL(10,2) NOT NULL,
+    estado                 VARCHAR(20)   NOT NULL DEFAULT 'Confirmada',
+    cantidadPersonas       INT           NOT NULL,
 
     CONSTRAINT PK_Contratacion PRIMARY KEY (idContratacion),
+
     CONSTRAINT FK_Con_DetalleCon FOREIGN KEY (idDetalleContratacion)
         REFERENCES Actividades.DetalleContratacion (idDetalleContratacion),
-    CONSTRAINT FK_Con_ActTur FOREIGN KEY (idActividadTuristica)
-        REFERENCES Actividades.ActividadTuristica (idActividadTuristica),
+
+    CONSTRAINT FK_Con_ActividadProgramada FOREIGN KEY (idActividadProgramada)
+        REFERENCES Actividades.ActividadProgramada (idActividadProgramada),
+
     CONSTRAINT CK_Cont_Costo CHECK (costo >= 0),
     CONSTRAINT CK_Cont_Personas CHECK (cantidadPersonas > 0),
-    CONSTRAINT CK_Cont_Estado CHECK (estado IN ('Pendiente','Confirmada','Cancelada','Completada'))
+    CONSTRAINT CK_Cont_Estado CHECK (
+        estado IN ('Confirmada','Cancelada','Completada')
+    )
 );
 GO
+

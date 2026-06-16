@@ -27,7 +27,7 @@ GO
 USE ParquesNacionales;
 GO
 
--- ── Esquemas ──────────────────────────────────────────────
+-- Esquemas ---
 CREATE SCHEMA Parques;          -- Entidades centrales del parque
 GO
 CREATE SCHEMA Guias;            -- Guías, habilitaciones y títulos
