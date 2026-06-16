@@ -199,6 +199,7 @@ CREATE TABLE Actividades.GuiaActividadRealizada (
     idGuiaActividadRealizada INT          IDENTITY(1,1) NOT NULL,
     idGuia                   INT          NOT NULL,
     idActividadTuristica     INT          NOT NULL,
+    idContratacion           INT          NOT NULL,
     fecha                    DATE         NOT NULL,
     horaInicio               TIME         NOT NULL,
     observaciones            VARCHAR(300) NULL,
@@ -207,7 +208,9 @@ CREATE TABLE Actividades.GuiaActividadRealizada (
     CONSTRAINT FK_GAR_Guia FOREIGN KEY (idGuia)
         REFERENCES Guias.Guia (idGuia),
     CONSTRAINT FK_GAR_Actividad FOREIGN KEY (idActividadTuristica)
-        REFERENCES Actividades.ActividadTuristica (idActividadTuristica)
+        REFERENCES Actividades.ActividadTuristica (idActividadTuristica),
+    CONSTRAINT FK_Contratacion FOREIGN KEY (idContratacion)
+        REFERENCES Actividades.Contratacion (idContratacion)
 );
 GO
 

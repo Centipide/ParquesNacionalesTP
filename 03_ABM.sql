@@ -14,7 +14,7 @@ USE ParquesNacionales
 GO
 
 -- ==========================================================
--- ESQUEMA Personal
+-- TABLA Guardaparque
 -- ==========================================================
 CREATE OR ALTER PROCEDURE Personal.sp_AltaGuardaparque
     @nombre             VARCHAR(50),
@@ -143,5 +143,111 @@ BEGIN
     UPDATE Personal.Guardaparque
     SET estaActivo = 0, fechaEgresoCargo = CAST(GETDATE() AS DATE), motivoEgreso = @motivoEgreso
     WHERE idGuardaparque = @idGuardaparque
+END
+GO
+
+-- ==========================================================
+-- TABLA HistorialGuardaparque
+-- ==========================================================
+CREATE OR ALTER PROCEDURE Personal.sp_AltaHistorialGuardaparque
+    @idParque       INT,
+    @idGuardaparque INT,
+    @fechaIngreso   DATE,
+    @fechaEgreso    DATE = NULL
+AS
+BEGIN
+    SET NOCOUNT ON
+    DECLARE @errores VARCHAR(1000) = ''
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Parques.Parque
+        WHERE idParque = @idParque
+    )
+    SET @errores += '- El parque no existe.' + CHAR(10)
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Personal.Guardaparque
+        WHERE idGuardaparque = @idGuardaparque
+    )
+    SET @errores += '- El guardaparque no existe.' + CHAR(10)
+
+    IF @fechaEgreso IS NOT NULL AND @fechaEgreso < @fechaIngreso
+    SET @errores += '- Fecha de agreso no puede ser menor a ingreso' + CHAR(10)
+
+    IF @errores <> ''
+    BEGIN RAISERROR (@errores, 16, 1)
+        RETURN
+    END
+
+    INSERTO INTO Personal.HistorialGuardaparque
+        (idParque, idGuardaparque, fechaIngreso, fechaEgreso)
+    VALUES
+        (@idParque, @idGuardaparque, @fechaIngreso, @fechaEgreso)
+
+    SELECT SCOPE_IDENTITY() AS idHistorialGuardaparqueNuevo
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE Personal.sp_ModificacionHistorialGuardaparque
+    @idHistorial    INT,
+    @idParque       INT,
+    @idGuardaparque INT,
+    @fechaIngreso   DATE,
+    @fechaEgreso    DATE
+AS
+BEGIN
+    SET NOCOUNT ON
+    DECLARE @errores VARCHAR(1000) = ''
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Parques.Parque
+        WHERE idParque = @idParque
+    )
+    SET @errores += '- El parque no existe.' + CHAR(10)
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Personal.Guardaparque
+        WHERE idGuardaparque = @idGuardaparque
+    )
+    SET @errores += '- El guardaparque no existe.' + CHAR(10)
+
+    IF @fechaEgreso IS NOT NULL AND @fechaEgreso < @fechaIngreso
+    SET @errores += '- Fecha de agreso no puede ser menor a ingreso' + CHAR(10)
+
+    IF @errores <> ''
+    BEGIN RAISERROR (@errores, 16, 1)
+        RETURN
+    END
+
+    UPDATE Personal.HistorialGuardaparque
+    SET idParque = @idParque, idGuardaparque = @idGuardaparque,
+        fechaIngreso = @fechaIngreso, fechaEgreso = @fechaEgreso
+    WHERE idHistorial = @idHistorial
+END
+GO
+
+
+CREATE OR ALTER PROCEDURE Personal.sp_BajaHistorialGuardaparque
+    @idHistorial        INT,
+AS
+BEGIN
+    SET NOCOUNT ON
+    DECLARE @errores VARCHAR(100) = ''
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Personal.HistorialGuardaparque
+        WHERE idHistorial = @idHistorial
+    )
+    SET @errores += '- Historial de Guardaparque no existe.' + CHAR(10)
+
+    IF @errores <> ''
+    BEGIN RAISERROR (@errores, 16, 1)
+        RETURN
+    END
+
+    UPDATE Personal.HistorialGuardaparque
+    SET fechaEgreso = CAST(GETDATE() AS DATE)
+    WHERE idHistorial = @idHistorial
 END
 GO
