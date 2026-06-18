@@ -1991,3 +1991,107 @@ BEGIN
     PRINT 'Ticket de venta removido de forma física correctamente.';
 END;
 GO
+
+
+-- ==========================================================
+-- TABLA DetalleVenta
+-- ==========================================================
+
+CREATE OR ALTER PROCEDURE Ventas.sp_AltaDetalleVenta
+    @idVenta    INT,
+    @idEntrada  INT,
+    @cantidad   INT,
+    @subtotal   DECIMAL(12,2)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Venta WHERE idVenta = @idVenta)
+        SET @errores += '- El ID del ticket de venta especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Entrada WHERE idEntrada = @idEntrada)
+        SET @errores += '- El ID del registro tarifario de entrada especificado no existe.' + CHAR(10);
+
+    IF @cantidad IS NULL OR @cantidad <= 0
+        SET @errores += '- La cantidad de entradas por ítem debe ser estrictamente mayor a cero.' + CHAR(10);
+
+    IF @subtotal IS NULL OR @subtotal < 0
+        SET @errores += '- El monto del subtotal del renglón no puede tomar valores negativos.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Ventas.DetalleVenta (idVenta, idEntrada, cantidad, precio)
+    VALUES (@idVenta, @idEntrada, @cantidad, @subtotal);
+
+    SELECT SCOPE_IDENTITY() AS idDetalleVentaNuevo;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_ModificacionDetalleVenta
+    @idDetalleVenta INT,
+    @idVenta        INT,
+    @idEntrada      INT,
+    @cantidad       INT,
+    @subtotal       DECIMAL(12,2)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.DetalleVenta WHERE idDetalleVenta = @idDetalleVenta)
+        SET @errores += '- El ID del renglón de detalle especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Venta WHERE idVenta = @idVenta)
+        SET @errores += '- El ID del ticket de venta especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Entrada WHERE idEntrada = @idEntrada)
+        SET @errores += '- El ID de la tarifa especificada no existe.' + CHAR(10);
+
+    IF @cantidad IS NULL OR @cantidad <= 0
+        SET @errores += '- La cantidad modificada debe ser mayor a cero.' + CHAR(10);
+
+    IF @subtotal IS NULL OR @subtotal < 0
+        SET @errores += '- El subtotal modificado no puede ser nulo ni negativo.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    UPDATE Ventas.DetalleVenta
+    SET idVenta = @idVenta,
+        idEntrada = @idEntrada,
+        cantidad = @cantidad,
+        precio = @subtotal
+    WHERE idDetalleVenta = @idDetalleVenta;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_EliminarDetalleVenta
+    @idDetalleVenta INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.DetalleVenta WHERE idDetalleVenta = @idDetalleVenta)
+        SET @errores += '- El ID del detalle de venta a eliminar no existe.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    DELETE FROM Ventas.DetalleVenta 
+    WHERE idDetalleVenta = @idDetalleVenta;
+    
+    PRINT 'Renglón de la venta eliminado correctamente.';
+END;
+GO

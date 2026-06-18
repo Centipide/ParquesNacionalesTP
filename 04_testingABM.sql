@@ -2107,3 +2107,109 @@ END CATCH;
 
 ROLLBACK TRANSACTION;
 GO
+
+
+-- ========================================================================
+-- TESTING DE DETALLE VENTA
+-- ========================================================================
+-- ************************************************************************
+-- TEST DETALLE VENTA: CASO EXITOSO
+-- ************************************************************************
+
+BEGIN TRANSACTION;
+BEGIN TRY
+    DECLARE @idTypeP INT, @idPark INT, @idCat INT, @idTarifa INT, @idCli INT, @idTicket INT, @idDetalleTest INT;
+
+    -- Inyección controlada de dependencias en cascada
+    INSERT INTO Parques.TipoParque (nombre) VALUES ('TEST_DetVenta');
+    SET @idTypeP = SCOPE_IDENTITY();
+
+    INSERT INTO Parques.Parque (idTipoParque, nombre, localidad, provincia, superficie)
+    VALUES (@idTypeP, 'TEST_Parque Detalle', 'Localidad D', 'Provincia D', 900.00);
+    SET @idPark = SCOPE_IDENTITY();
+
+    INSERT INTO Ventas.TipoVisitante (nombre) VALUES ('TEST_Turista');
+    SET @idCat = SCOPE_IDENTITY();
+
+    -- Usamos la columna real 'precio' que validamos en el paso anterior
+    INSERT INTO Ventas.Entrada (idParque, idTipoVisitante, precio) VALUES (@idPark, @idCat, 2000.00);
+    SET @idTarifa = SCOPE_IDENTITY();
+
+    INSERT INTO Ventas.Visitante (nombre, apellido) VALUES ('TEST_Comprador', 'Detalle');
+    SET @idCli = SCOPE_IDENTITY();
+
+    INSERT INTO Ventas.Venta (idVisitante, formaPago, puntoVenta, total) 
+    VALUES (@idCli, 'Efectivo', 'Puesto A', 4000.00);
+    SET @idTicket = SCOPE_IDENTITY();
+
+    -- 1. Test Alta Exitosa (Comprar 2 entradas de $2000 = $4000 subtotal)
+    EXEC Ventas.sp_AltaDetalleVenta
+        @idVenta = @idTicket,
+        @idEntrada = @idTarifa,
+        @cantidad = 2,
+        @subtotal = 4000.00;
+
+    PRINT 'Evidencia post-alta:';
+    SELECT * FROM Ventas.DetalleVenta WHERE idVenta = @idTicket;
+
+    SELECT @idDetalleTest = idDetalleVenta FROM Ventas.DetalleVenta WHERE idVenta = @idTicket;
+
+    -- 2. Test Modificación Exitosa
+    EXEC Ventas.sp_ModificacionDetalleVenta
+        @idDetalleVenta = @idDetalleTest,
+        @idVenta = @idTicket,
+        @idEntrada = @idTarifa,
+        @cantidad = 3,
+        @subtotal = 6000.00;
+
+    PRINT 'Evidencia post-modificación:';
+    SELECT * FROM Ventas.DetalleVenta WHERE idDetalleVenta = @idDetalleTest;
+
+    -- 3. Test Eliminación Exitosa
+    EXEC Ventas.sp_EliminarDetalleVenta @idDetalleVenta = @idDetalleTest;
+
+    PRINT 'Evidencia post-eliminación (Debe retornar vacío):';
+    SELECT * FROM Ventas.DetalleVenta WHERE idDetalleVenta = @idDetalleTest;
+
+END TRY
+BEGIN CATCH
+    PRINT 'Error inesperado detectado en flujo de ítems facturados: ' + ERROR_MESSAGE();
+END CATCH;
+
+ROLLBACK TRANSACTION;
+GO
+
+-- ************************************************************************
+-- CASOS DE ERROR CONTROLADOS
+-- ************************************************************************
+
+-- Prueba A: IDs de cabecera y catálogo falsos, cantidad cero y subtotal negativo
+BEGIN TRANSACTION;
+BEGIN TRY
+    EXEC Ventas.sp_AltaDetalleVenta
+        @idVenta = -1,
+        @idEntrada = -1,
+        @cantidad = 0,
+        @subtotal = -100.00;
+END TRY
+BEGIN CATCH
+    SELECT value AS [Errores Atrapados (Detalle Inválido)]
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10)) WHERE value <> '';
+END CATCH;
+
+-- Prueba B: Modificación con ID de renglón inexistente y parámetros en NULL
+BEGIN TRY
+    EXEC Ventas.sp_ModificacionDetalleVenta
+        @idDetalleVenta = -999,
+        @idVenta = 1,
+        @idEntrada = 1,
+        @cantidad = NULL,
+        @subtotal = NULL;
+END TRY
+BEGIN CATCH
+    SELECT value AS [Errores Atrapados (Modificación Inexistente)]
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10)) WHERE value <> '';
+END CATCH;
+
+ROLLBACK TRANSACTION;
+GO
