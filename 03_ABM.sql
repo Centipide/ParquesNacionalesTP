@@ -1184,7 +1184,7 @@ GO
 -- ==========================================================
 
 CREATE OR ALTER PROCEDURE Guias.sp_AltaGuia
-    @nombre               INT,
+    @nombre               VARCHAR(50),
     @apellido             VARCHAR(50),
     @fechaNacimiento      DATE,
     @tipoDocumento        VARCHAR(20),
@@ -1197,18 +1197,18 @@ AS
 BEGIN
     SET NOCOUNT ON
 
-    DECLARE @errores VARCHAR(500) = '';
+    DECLARE @errores VARCHAR(500) = ''
 
     -- Validacion NOMBRE
     IF @nombre IS NULL OR LTRIM(RTRIM(@nombre)) = ''
-        SET @errores = @errores + 'El nombre no puede estar vacio' + CHAR(10)
+        SET @errores += 'El nombre no puede estar vacio.' + CHAR(10)
     
     -- Validacion APELLIDO
     IF @apellido IS NULL OR LTRIM(RTRIM(@nombre)) = ''
-        SET @errores = @errores + 'El apellido no puede estar vacio' + CHAR(10)
+        SET @errores += 'El apellido no puede estar vacio.' + CHAR(10)
     
     -- Validacion FECHA NACIMIENTO
-    IF ISNULL (@fechaNacimiento,'') = ''
+    IF @fechaNacimiento IS NULL
         SET @errores += 'Fecha de nacimiento no ingresada.' + CHAR(10)
 
     --Validacion TIPO DOCUMENTO Y NRO DOCUMENTO
@@ -1216,14 +1216,14 @@ BEGIN
         SELECT 1 FROM Guias.Guia
         WHERE tipoDocumento = @tipoDocumento AND nroDocumento = @nroDocumento
     )
-        SET @errores += 'Tipo y Nro de documento ya existen' + CHAR(10)
+        SET @errores += 'Tipo y Nro de documento ya existen.' + CHAR(10)
 
     --Validacion EMAIL
     IF EXISTS(
         SELECT 1 FROM Guias.Guia
         WHERE email = @email
     )
-        SET @errores += 'Email ya registrado' + CHAR(10)
+        SET @errores += 'Email ya registrado.' + CHAR(10)
     
     -- Validacion vigencia autorizacion vacia
     IF @vigenciaAutorizacion IS NULL
@@ -1249,7 +1249,7 @@ GO
 
 CREATE OR ALTER PROCEDURE Guias.sp_ModificacionGuia
     @idGuia               INT,
-    @nombre               INT,
+    @nombre               VARCHAR(50),
     @apellido             VARCHAR(50),
     @fechaNacimiento      DATE,
     @tipoDocumento        VARCHAR(20),
@@ -1262,7 +1262,7 @@ AS
 BEGIN
     SET NOCOUNT ON
 
-    DECLARE @errores VARCHAR(500) = '';
+    DECLARE @errores VARCHAR(500) = ''
 
     IF NOT EXISTS(
         SELECT 1 FROM Guias.Guia
@@ -1275,14 +1275,14 @@ BEGIN
         SELECT 1 FROM Guias.Guia
         WHERE tipoDocumento = @tipoDocumento AND nroDocumento = @nroDocumento AND idGuia != @idGuia
     )
-        SET @errores += 'Ya existe otro guia con este tipo y nro de documento' + CHAR(10)
+        SET @errores += 'Ya existe otro guia con este tipo y nro de documento.' + CHAR(10)
 
     --Validacion EMAIL
     IF EXISTS(
         SELECT 1 FROM Guias.Guia
         WHERE email = @email AND idGuia != @idGuia
     )
-        SET @errores += 'ya existe otro guia con ese email' + CHAR(10)
+        SET @errores += 'ya existe otro guia con ese email.' + CHAR(10)
     
     -- Validacion vigencia autorizacion vacia
     IF @vigenciaAutorizacion IS NULL
@@ -1320,7 +1320,7 @@ AS
 BEGIN
     SET NOCOUNT ON
 
-    DECLARE @errores VARCHAR(100) = '';
+    DECLARE @errores VARCHAR(100) = ''
 
     IF NOT EXISTS(
         SELECT 1 FROM Guias.Guia
@@ -1335,10 +1335,436 @@ BEGIN
     END
 
      UPDATE Guias.Guia
-    SET
-        estaActivo = 0
-    WHERE idGuia=@idGuia;
+    SET estaActivo = 0
+    WHERE idGuia=@idGuia
 END
+GO
+-- ==========================================================
+-- TABLA Habilitacion
+-- ==========================================================
+
+CREATE OR ALTER PROCEDURE Guias.sp_AltaHabilitacion
+    @nombre           VARCHAR(50),
+    @fechaEmision     DATE,
+    @fechaVencimiento DATE
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    DECLARE @errores VARCHAR(500) = ''
+    
+    --Validacion nombre
+    IF @nombre IS NULL OR LTRIM(RTRIM(@nombre)) = ''
+        SET @errores += 'El nombre no puede estar vacio.' + CHAR(10)
+
+    --Validacion FechaEmision
+    IF @fechaEmision IS NULL
+        SET @errores += 'La fecha de emision es obligatoria.' + CHAR(10)
+    
+    IF @fechaVencimiento IS NULL
+        SET @errores += 'La fecha de vencimiento es obligatoria.' + CHAR(10)
+
+    IF @fechaEmision IS NOT NULL AND @fechaVencimiento IS NOT NULL
+    AND @fechaVencimiento <= @fechaEmision
+        SET @errores += 'La fecha de vencimiento debe ser posterior a la fecha de emision.' + CHAR(10)
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores,16,1)
+        RETURN
+    END
+
+    INSERT INTO Guias.Habilitacion (nombre,fechaEmision,fechaVencimiento)
+    VALUES(@nombre, @fechaEmision, @fechaVencimiento)
+
+    SELECT SCOPE_IDENTITY() AS idHabilitacionNueva
+END
+GO
+
+--==================================================================
+CREATE OR ALTER PROCEDURE Guias.sp_ModificacionHabilitacion
+    @idHabilitacion   INT,
+    @nombre           VARCHAR(50),
+    @fechaEmision     DATE,
+    @fechaVencimiento DATE
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    DECLARE @errores VARCHAR(500) = ''
+    
+    IF NOT EXISTS(
+        SELECT 1 FROM Guias.Habilitacion
+        WHERE idHabilitacion = @idHabilitacion
+    )
+    SET @errores += 'La habilitacion ingresada no existe' + CHAR(10)
+
+        --Validacion nombre
+    IF @nombre IS NULL OR LTRIM(RTRIM(@nombre)) = ''
+        SET @errores += 'El nombre no puede estar vacio.' + CHAR(10)
+
+    --Validacion FechaEmision
+    IF @fechaEmision IS NULL
+        SET @errores += 'La fecha de emision es obligatoria.' + CHAR(10)
+    
+    --Validacion FechaVencimiento
+    IF @fechaVencimiento IS NULL
+        SET @errores += 'La fecha de vencimiento es obligatoria.' + CHAR(10)
+
+    IF @fechaEmision IS NOT NULL AND @fechaVencimiento IS NOT NULL
+    AND @fechaVencimiento <= @fechaEmision
+        SET @errores += 'La fecha de vencimiento debe ser posterior a la fecha de emision.' + CHAR(10)
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1)
+        RETURN
+    END
+
+    UPDATE Guias.Habilitacion 
+    SET 
+        nombre = @nombre, 
+        fechaEmision = @fechaEmision, 
+        fechaVencimiento = @fechaVencimiento
+    WHERE idHabilitacion = @idHabilitacion
+END
+GO
+--=====================================================================================================
+CREATE OR ALTER PROCEDURE Guias.sp_BajaHabilitacion
+    @idHabilitacion   INT
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    DECLARE @errores VARCHAR(500) = ''
+    
+    IF NOT EXISTS(
+        SELECT 1 FROM Guias.Habilitacion
+        WHERE idHabilitacion = @idHabilitacion
+    )
+    SET @errores += 'La habilitacion ingresada no existe.' + CHAR(10)
+
+    IF EXISTS(
+        SELECT 1
+        FROM Guias.GuiaHabilitacion
+        WHERE idHabilitacion = @idHabilitacion
+    )
+        SET @errores += 'No se puede eliminar porque existen guias asociadas.' + CHAR(10)
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1)
+        RETURN
+    END
+    
+    DELETE FROM Guias.Habilitacion
+    WHERE idHabilitacion = @idHabilitacion
+
+END
+GO
+
+--===========================================================
+-- TABLA GuiaHabilitacion
+-- ==========================================================
+CREATE OR ALTER PROCEDURE Guias.sp_AltaGuiaHabilitacion
+    @idGuia         INT,
+    @idHabilitacion INT
+AS
+BEGIN 
+    SET NOCOUNT ON
+
+    DECLARE @errores VARCHAR(500) = ''
+
+    IF NOT EXISTS(
+        SELECT 1 
+        FROM Guias.Guia
+        WHERE idGuia = @idGuia
+    )
+        SET @errores += 'El guia ingresado no existe.' + CHAR(10)
+    
+    IF NOT EXISTS(
+        SELECT 1
+        FROM Guias.Habilitacion
+        WHERE idHabilitacion = @idHabilitacion
+    )
+        SET @errores += 'La habilitacion ingresada no existe.' + CHAR(10)
+    
+    IF EXISTS(
+        SELECT 1
+        FROM Guias.GuiaHabilitacion
+        WHERE idHabilitacion = @idHabilitacion
+        AND idGuia = @idGuia
+    )
+        SET @errores += 'El guia ya tiene esa habilitacion' + CHAR(10)
+    
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores,16,1)
+        RETURN
+    END
+
+    INSERT INTO Guias.GuiaHabilitacion (idGuia, idHabilitacion)
+    VALUES (@idGuia, @idHabilitacion)
+END
+GO
+
+--=================================================================
+
+CREATE OR ALTER PROCEDURE Guias.sp_BajaGuiaHabilitacion
+    @idGuia         INT,
+    @idHabilitacion INT
+AS
+BEGIN 
+    SET NOCOUNT ON
+
+    DECLARE @errores VARCHAR(500) = ''
+
+    IF NOT EXISTS(
+        SELECT 1 
+        FROM Guias.Guia
+        WHERE idGuia = @idGuia
+    )
+        SET @errores += 'El guia ingresado no existe.' + CHAR(10)
+    
+    IF NOT EXISTS(
+        SELECT 1
+        FROM Guias.Habilitacion
+        WHERE idHabilitacion = @idHabilitacion
+    )
+        SET @errores += 'La habilitacion ingresada no existe.' + CHAR(10)
+    
+    IF NOT EXISTS(
+        SELECT 1
+        FROM Guias.GuiaHabilitacion
+        WHERE idHabilitacion = @idHabilitacion
+        AND idGuia = @idGuia
+    )
+        SET @errores += 'La relacion Guia - Habilitacion no existe' + CHAR(10)
+    
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores,16,1)
+        RETURN
+    END
+
+    DELETE FROM Guias.GuiaHabilitacion
+    WHERE idGuia = @idGuia AND idHabilitacion = @idHabilitacion
+END
+GO
+
+--===========================================================
+-- TABLA Titulo
+-- ==========================================================
+
+CREATE OR ALTER PROCEDURE Guias.sp_AltaTitulo
+    @nombre           VARCHAR(50),
+    @fechaEmision     DATE
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    DECLARE @errores VARCHAR(500) = ''
+    
+    --Validacion nombre
+    IF @nombre IS NULL OR LTRIM(RTRIM(@nombre)) = ''
+        SET @errores += 'El nombre del titulo no puede estar vacio.' + CHAR(10)
+
+    --Validacion FechaEmision
+    IF @fechaEmision IS NULL
+        SET @errores += 'La fecha de emision es obligatoria.' + CHAR(10)
+
+    IF EXISTS(
+        SELECT 1
+        FROM GUias.Titulo
+        WHERE nombre = @nombre AND fechaEmision = @fechaEmision
+    )
+        SET @errores += 'Este titulo ya existe.' + CHAR(10)
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores,16,1)
+        RETURN
+    END
+
+    INSERT INTO Guias.Habilitacion (nombre,fechaEmision)
+    VALUES(@nombre, @fechaEmision)
+
+    SELECT SCOPE_IDENTITY() AS idTituloNuevo
+END
+GO
+
+ --====================================================================
+CREATE OR ALTER PROCEDURE Guias.sp_ModificacionTitulo
+    @idTitulo         INT,
+    @nombre           VARCHAR(50),
+    @fechaEmision     DATE
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    DECLARE @errores VARCHAR(500) = ''
+
+    IF NOT EXISTS(
+        SELECT 1 
+        FROM Guias.Titulo
+        WHERE idTitulo = @idTitulo
+    )
+        SET @errores += 'El titulo ingresado no existe.' + CHAR(10)
+    
+    --Validacion nombre
+    IF @nombre IS NULL OR LTRIM(RTRIM(@nombre)) = ''
+        SET @errores += 'El nombre del titulo no puede estar vacio.' + CHAR(10)
+
+    --Validacion FechaEmision
+    IF @fechaEmision IS NULL
+        SET @errores += 'La fecha de emision es obligatoria.' + CHAR(10)
+
+    IF EXISTS(
+        SELECT 1
+        FROM GUias.Titulo
+        WHERE nombre = @nombre AND fechaEmision = @fechaEmision AND idTitulo = @idTitulo
+    )
+        SET @errores += 'Ya existe este titulo con estos datos.' + CHAR(10)
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores,16,1)
+        RETURN
+    END
+
+    UPDATE Guias.Titulo 
+    SET 
+        nombre = @nombre,
+        fechaEmision = @fechaEmision
+    WHERE idTitulo = @idTitulo
+END
+GO
+
+--=========================================================================
+
+CREATE OR ALTER PROCEDURE Guias.sp_BajaTitulo
+    @idTitulo         INT
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    DECLARE @errores VARCHAR(500) = ''
+
+    IF NOT EXISTS(
+        SELECT 1 
+        FROM Guias.Titulo
+        WHERE idTitulo = @idTitulo
+    )
+        SET @errores += 'El titulo ingresado no existe.' + CHAR(10)
+    
+    IF EXISTS(
+        SELECT 1
+        FROM Guias.GuiaTitulo
+        WHERE idTitulo = @idTitulo
+    )
+        SET @errores += 'No se puede eliminar porque existe guias asociados.' + CHAR(10)
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores,16,1)
+        RETURN
+    END
+
+    DELETE FROM Guias.Titulo 
+    WHERE idTitulo = @idTitulo
+END
+GO
+
+--===========================================================
+-- TABLA GuiaTitulo
+-- ==========================================================
+CREATE OR ALTER PROCEDURE Guias.sp_AltaGuiaTitulo
+    @idGuia         INT,
+    @idTitulo       INT
+AS
+BEGIN 
+    SET NOCOUNT ON
+
+    DECLARE @errores VARCHAR(500) = ''
+
+    IF NOT EXISTS(
+        SELECT 1 
+        FROM Guias.Guia
+        WHERE idGuia = @idGuia
+    )
+        SET @errores += 'El guia ingresado no existe.' + CHAR(10)
+    
+    IF NOT EXISTS(
+        SELECT 1
+        FROM Guias.Titulo
+        WHERE idTitulo = @idTitulo
+    )
+        SET @errores += 'El titulo ingresado no existe.' + CHAR(10)
+    
+    IF EXISTS(
+        SELECT 1
+        FROM Guias.GuiaTitulo
+        WHERE idTitulo = @idTitulo
+        AND idGuia = @idGuia
+    )
+        SET @errores += 'El guia ya tiene ese titulo' + CHAR(10)
+    
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores,16,1)
+        RETURN
+    END
+
+    INSERT INTO Guias.GuiaTitulo (idGuia, idTitulo)
+    VALUES (@idGuia, @idTitulo)
+END
+GO
+
+--=================================================================
+
+CREATE OR ALTER PROCEDURE Guias.sp_BajaGuiaTitulo
+    @idGuia         INT,
+    @idTitulo       INT
+AS
+BEGIN 
+    SET NOCOUNT ON
+
+    DECLARE @errores VARCHAR(500) = ''
+
+    IF NOT EXISTS(
+        SELECT 1 
+        FROM Guias.Guia
+        WHERE idGuia = @idGuia
+    )
+        SET @errores += 'El guia ingresado no existe.' + CHAR(10)
+    
+    IF NOT EXISTS(
+        SELECT 1
+        FROM Guias.Titulo
+        WHERE idTitulo = @idTitulo
+    )
+        SET @errores += 'El titulo ingresado no existe.' + CHAR(10)
+    
+    IF NOT EXISTS(
+        SELECT 1
+        FROM Guias.GuiaTitulo
+        WHERE idTitulo = @idTitulo
+        AND idGuia = @idGuia
+    )
+        SET @errores += 'La relacion Guia - Titulo no existe' + CHAR(10)
+    
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores,16,1)
+        RETURN
+    END
+
+    DELETE FROM Guias.GuiaTitulo
+    WHERE idGuia = @idGuia AND idTitulo = @idTitulo
+END
+GO
+
+--===========================================================
 -- TABLA EmpresaConcesionaria
 -- ==========================================================
 
