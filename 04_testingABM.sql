@@ -1274,9 +1274,9 @@ GO
 USE ParquesNacionales;
 GO
 
--- '========================================================================'
--- 'TEST CASO EXITOSO: ALTA -> MODIFICACIÓN -> ELIMINACIÓN'
--- '========================================================================'
+-- ========================================================================
+-- TEST CASO EXITOSO: ALTA -> MODIFICACIÓN -> ELIMINACIÓN
+-- ========================================================================
 
 BEGIN TRANSACTION; -- Inicio de zona segura de pruebas sin datos basura
 BEGIN TRY
@@ -1319,9 +1319,9 @@ ROLLBACK TRANSACTION; -- La base vuelve a su estado original e intacto
 GO
 
 
--- '========================================================================'
--- 'TEST CASO FALLIDO: SIMULACIÓN DE INFRACCIÓN A VALIDACIONES'
--- '========================================================================'
+-- ========================================================================
+-- TEST CASO FALLIDO: SIMULACIÓN DE INFRACCIÓN A VALIDACIONES
+-- ========================================================================
 -- ESCENARIO ESPERADO: El SP debe interceptar los fallos y concatenar ambos
 -- en un mismo string (CUIT inválido menor a 11 caracteres y Razón Social vacía).
 
@@ -1341,9 +1341,9 @@ END CATCH;
 ROLLBACK TRANSACTION;
 GO
 
--- '========================================================================'
--- 'TEST TIPO ACTIVIDAD CONCESION: CASO EXITOSO (CON ROLLBACK)
--- '========================================================================'
+-- ========================================================================
+-- TEST TIPO ACTIVIDAD CONCESION: CASO EXITOSO (CON ROLLBACK)
+-- ========================================================================
 
 BEGIN TRANSACTION;
 BEGIN TRY
@@ -1383,9 +1383,9 @@ ROLLBACK TRANSACTION;
 GO
 
 
--- '========================================================================'
--- 'TEST TIPO ACTIVIDAD CONCESION: CASO DE ERROR
--- '========================================================================'
+-- ========================================================================
+-- TEST TIPO ACTIVIDAD CONCESION: CASO DE ERROR
+-- ========================================================================
 -- ESCENARIO ESPERADO: Debe fallar concatenando el nombre vacío.
 
 BEGIN TRANSACTION;
@@ -1403,9 +1403,9 @@ END CATCH;
 ROLLBACK TRANSACTION;
 GO
 
--- '========================================================================'
--- 'TEST CONCESION: CASO EXITOSO (CON ROLLBACK)'
--- '========================================================================'
+-- ========================================================================
+-- TEST CONCESION: CASO EXITOSO (CON ROLLBACK)
+-- ========================================================================
 
 BEGIN TRANSACTION;
 BEGIN TRY
@@ -1472,9 +1472,9 @@ ROLLBACK TRANSACTION; -- Limpieza de los datos de soporte
 GO
 
 
--- '========================================================================'
--- 'TEST CONCESION: CASO DE ERROR (VALIDACIONES ACUMULATIVAS)'
--- '========================================================================'
+-- ========================================================================
+-- TEST CONCESION: CASO DE ERROR (VALIDACIONES ACUMULATIVAS)
+-- ========================================================================
 -- ESCENARIO ESPERADO: Debe fallar concatenando tres infracciones claras:
 -- (FKs inexistentes, fechas cruzadas al revés y monto negativo).
 
@@ -1491,6 +1491,96 @@ BEGIN TRY
 END TRY
 BEGIN CATCH
     PRINT 'Mensaje consolidado capturado con éxito para el usuario final:';
+    SELECT value AS [Errores Atrapados]
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+
+-- ========================================================================
+-- TEST PAGO CANON: CASO EXITOSO Y RESTRICCIÓN DE BAJA
+-- ========================================================================
+
+BEGIN TRANSACTION;
+BEGIN TRY
+    DECLARE @idEmpresa INT, @idActividad INT, @idParque INT, @idConcesion INT, @idPagoTest INT;
+    DECLARE @idTipoParque INT;
+
+    -- Datos semilla de soporte para la integridad de claves
+    INSERT INTO Parques.TipoParque (nombre, descripcion) VALUES ('TEST_ReservaPago', 'Pruebas Pago');
+    SET @idTipoParque = SCOPE_IDENTITY();
+
+    INSERT INTO Parques.Parque (idTipoParque, nombre, localidad, provincia, superficie)
+    VALUES (@idTipoParque, 'TEST_Parque Financiero', 'Localidad F', 'Provincia F', 2300.00);
+    SET @idParque = SCOPE_IDENTITY();
+
+    INSERT INTO Concesiones.EmpresaConcesionaria (cuit, razonSocial, contacto)
+    VALUES ('30999999994', 'TEST_Concesiones de Alimentos S.A.', 'pagos@test.com');
+    SET @idEmpresa = SCOPE_IDENTITY();
+
+    INSERT INTO Concesiones.TipoActividadConcesion (nombre, descripcionActividad)
+    VALUES ('TEST_Kiosco', 'Venta de golosinas y bebidas.');
+    SET @idActividad = SCOPE_IDENTITY();
+
+    INSERT INTO Concesiones.Concesion (idEmpresaConcesionaria, idTipoActividadConcesion, idParque, fechaInicio, fechaFin, montoAlquiler, estado)
+    VALUES (@idEmpresa, @idActividad, @idParque, '2026-01-01', '2026-12-31', 50000.00, 'Activa');
+    SET @idConcesion = SCOPE_IDENTITY();
+
+    -- 1. Probar Alta Exitosa de un Pago de Canon
+    EXEC Concesiones.sp_AltaPagoCanon
+        @idConcesion = @idConcesion,
+        @fechaPago = '2026-06-15',
+        @monto = 50000.00,
+        @fechaVencimiento = '2026-06-10', -- Pagado con retraso, pero válido
+        @fechaEmision = '2026-06-01';
+
+    PRINT 'Evidencia post-alta del Canon:';
+    SELECT * FROM Concesiones.PagoCanon WHERE idConcesion = @idConcesion;
+
+    SELECT @idPagoTest = idPagoCanon FROM Concesiones.PagoCanon WHERE idConcesion = @idConcesion;
+
+    -- 2. Probar Modificación
+    EXEC Concesiones.sp_ModificacionPagoCanon
+        @idPagoCanon = @idPagoTest,
+        @idConcesion = @idConcesion,
+        @fechaPago = '2026-06-05', -- Ajuste de fecha real por conciliación bancaria
+        @monto = 50000.00,
+        @fechaVencimiento = '2026-06-10',
+        @fechaEmision = '2026-06-01';
+
+    PRINT 'Evidencia post-modificación:';
+    SELECT * FROM Concesiones.PagoCanon WHERE idPagoCanon = @idPagoTest;
+
+    -- 3. Probar intento de eliminación (Debe disparar la regla restrictiva del SP)
+    PRINT 'Intento de borrado físico del pago:';
+    EXEC Concesiones.sp_EliminarPagoCanon @idPagoCanon = @idPagoTest;
+
+END TRY
+BEGIN CATCH
+    PRINT 'Mensaje de Auditoría capturado de forma correcta en el bloque CATCH:';
+    PRINT ERROR_MESSAGE();
+END CATCH;
+
+ROLLBACK TRANSACTION; -- Dejamos la base limpia sin basura de testing
+GO
+
+
+-- ========================================================================
+-- TEST PAGO CANON: CASO DE ERROR (VALIDACIONES CRUZADAS)
+-- ========================================================================
+
+BEGIN TRANSACTION;
+BEGIN TRY
+    EXEC Concesiones.sp_AltaPagoCanon
+        @idConcesion = -1,          -- Concesión inexistente
+        @fechaPago = '2026-06-18',
+        @monto = -2500.00,          -- Monto negativo
+        @fechaVencimiento = '2026-01-01',
+        @fechaEmision = '2026-02-01'; -- Vencimiento anterior a la emisión
+END TRY
+BEGIN CATCH
+    PRINT 'Mensaje consolidado de errores financieros:';
     SELECT value AS [Errores Atrapados]
     FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
     WHERE value <> '';

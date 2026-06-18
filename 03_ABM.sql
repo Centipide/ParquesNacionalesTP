@@ -1498,3 +1498,93 @@ BEGIN
     PRINT 'Contrato de concesión eliminado de forma exitosa.';
 END;
 GO
+
+-- ==========================================================
+-- TABLA PagoCanon
+-- ==========================================================
+
+CREATE OR ALTER PROCEDURE Concesiones.sp_AltaPagoCanon
+    @idConcesion      INT,
+    @fechaPago        DATE,
+    @monto            DECIMAL(12,2),
+    @fechaVencimiento DATE,
+    @fechaEmision     DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.Concesion WHERE idConcesion = @idConcesion)
+        SET @errores += '- El ID del contrato de concesión especificado no existe en los registros.' + CHAR(10);
+
+    IF @monto IS NULL OR @monto <= 0
+        SET @errores += '- El monto del canon debe ser una magnitud financiera estrictamente mayor a cero.' + CHAR(10);
+
+    IF @fechaVencimiento IS NULL OR @fechaEmision IS NULL
+        SET @errores += '- Las fechas de emisión y vencimiento del canon son campos de carácter obligatorio.' + CHAR(10);
+    ELSE IF @fechaVencimiento < @fechaEmision
+        SET @errores += '- Consistencia temporal: La fecha de vencimiento no puede ser anterior a la fecha de emisión del comprobante.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Concesiones.PagoCanon (idConcesion, fechaPago, monto, fechaVencimiento, fechaEmision)
+    VALUES (@idConcesion, @fechaPago, @monto, @fechaVencimiento, @fechaEmision);
+
+    SELECT SCOPE_IDENTITY() AS idPagoCanonNuevo;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Concesiones.sp_ModificacionPagoCanon
+    @idPagoCanon      INT,
+    @idConcesion      INT,
+    @fechaPago        DATE,
+    @monto            DECIMAL(12,2),
+    @fechaVencimiento DATE,
+    @fechaEmision     DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.PagoCanon WHERE idPagoCanon = @idPagoCanon)
+        SET @errores += '- El ID del registro de pago de canon a modificar no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.Concesion WHERE idConcesion = @idConcesion)
+        SET @errores += '- El ID del contrato de concesión especificado no existe.' + CHAR(10);
+
+    IF @monto <= 0
+        SET @errores += '- El monto a modificar debe ser mayor a cero.' + CHAR(10);
+
+    IF @fechaVencimiento < @fechaEmision
+        SET @errores += '- La fecha de vencimiento no puede ser anterior a la fecha de emisión.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    UPDATE Concesiones.PagoCanon
+    SET idConcesion = @idConcesion,
+        fechaPago = @fechaPago,
+        monto = @monto,
+        fechaVencimiento = @fechaVencimiento,
+        fechaEmision = @fechaEmision
+    WHERE idPagoCanon = @idPagoCanon;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Concesiones.sp_EliminarPagoCanon
+    @idPagoCanon INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    RAISERROR('- Error de Auditoría: Los registros históricos de PagoCanon no pueden ser eliminados físicamente del sistema por normativas de control fiscal.', 16, 1);
+    RETURN;
+END;
+GO
