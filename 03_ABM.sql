@@ -1885,3 +1885,109 @@ BEGIN
     PRINT 'Tarifa de acceso removida correctamente del sistema.';
 END;
 GO
+
+-- ==========================================================
+-- TABLA Venta
+-- ==========================================================
+
+CREATE OR ALTER PROCEDURE Ventas.sp_AltaVenta
+    @idVisitante INT,
+    @formaPago   VARCHAR(50),
+    @puntoVenta  VARCHAR(50),
+    @total       DECIMAL(12,2) = 0.00
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Visitante WHERE idVisitante = @idVisitante)
+        SET @errores += '- El ID de visitante especificado no existe en el sistema.' + CHAR(10);
+
+    IF @formaPago IS NULL OR LTRIM(RTRIM(@formaPago)) = ''
+        SET @errores += '- La forma de pago es un campo obligatorio.' + CHAR(10);
+
+    IF @puntoVenta IS NULL OR LTRIM(RTRIM(@puntoVenta)) = ''
+        SET @errores += '- El punto de venta/emisión del ticket es obligatorio.' + CHAR(10);
+
+    IF @total IS NULL OR @total < 0
+        SET @errores += '- El total de la venta no puede ser una magnitud negativa.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Ventas.Venta (idVisitante, fechaHora, formaPago, puntoVenta, total)
+    VALUES (@idVisitante, GETDATE(), LTRIM(RTRIM(@formaPago)), LTRIM(RTRIM(@puntoVenta)), @total);
+
+    SELECT SCOPE_IDENTITY() AS idVentaNueva;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_ModificacionVenta
+    @idVenta     INT,
+    @idVisitante INT,
+    @formaPago   VARCHAR(50),
+    @puntoVenta  VARCHAR(50),
+    @total       DECIMAL(12,2)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Venta WHERE idVenta = @idVenta)
+        SET @errores += '- El ID del ticket de venta especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Visitante WHERE idVisitante = @idVisitante)
+        SET @errores += '- El ID de visitante especificado no existe.' + CHAR(10);
+
+    IF @formaPago IS NULL OR LTRIM(RTRIM(@formaPago)) = ''
+        SET @errores += '- La forma de pago es un campo requerido.' + CHAR(10);
+
+    IF @puntoVenta IS NULL OR LTRIM(RTRIM(@puntoVenta)) = ''
+        SET @errores += '- El punto de venta es requerido.' + CHAR(10);
+
+    IF @total IS NULL OR @total < 0
+        SET @errores += '- El monto total no puede ser nulo ni negativo.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    UPDATE Ventas.Venta
+    SET idVisitante = @idVisitante,
+        formaPago = LTRIM(RTRIM(@formaPago)),
+        puntoVenta = LTRIM(RTRIM(@puntoVenta)),
+        total = @total
+    WHERE idVenta = @idVenta;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_EliminarVenta
+    @idVenta INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Venta WHERE idVenta = @idVenta)
+        SET @errores += '- El ID de la venta a eliminar no existe.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Ventas.DetalleVenta WHERE idVenta = @idVenta)
+        SET @errores += '- Restricción de Integridad: No es posible eliminar la cabecera de la venta porque registra ítems facturados (DetalleVenta) asociados.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    DELETE FROM Ventas.Venta 
+    WHERE idVenta = @idVenta;
+    
+    PRINT 'Ticket de venta removido de forma física correctamente.';
+END;
+GO

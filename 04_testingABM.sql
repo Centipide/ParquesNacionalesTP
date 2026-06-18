@@ -2020,3 +2020,90 @@ END CATCH;
 
 ROLLBACK TRANSACTION;
 GO
+
+-- ========================================================================
+-- TESTING DE VENTA
+-- ========================================================================
+-- ************************************************************************
+-- CASO EXITOSO 
+-- ************************************************************************
+BEGIN TRANSACTION;
+BEGIN TRY
+    DECLARE @idVisitante INT, @idVentaTest INT;
+
+    INSERT INTO Ventas.Visitante (nombre, apellido, email) 
+    VALUES ('TEST_Comprador', 'De Entradas', 'compras@test.com');
+    SET @idVisitante = SCOPE_IDENTITY();
+
+    -- 1. Test Alta Exitosa
+    EXEC Ventas.sp_AltaVenta
+        @idVisitante = @idVisitante,
+        @formaPago = 'Tarjeta de Crédito',
+        @puntoVenta = 'Portal Web Iguazú',
+        @total = 0.00; -- Inicia en cero hasta cargar los detalles
+
+    PRINT 'Evidencia post-alta:';
+    SELECT * FROM Ventas.Venta WHERE idVisitante = @idVisitante;
+
+    SELECT @idVentaTest = idVenta FROM Ventas.Venta WHERE idVisitante = @idVisitante;
+
+    -- 2. Test Modificación Exitosa
+    EXEC Ventas.sp_ModificacionVenta
+        @idVenta = @idVentaTest,
+        @idVisitante = @idVisitante,
+        @formaPago = 'Transferencia Bancaria',
+        @puntoVenta = 'Boletería Central',
+        @total = 4500.50; -- Simulación de actualización de caja
+
+    PRINT 'Evidencia post-modificación:';
+    SELECT * FROM Ventas.Venta WHERE idVenta = @idVentaTest;
+
+    -- 3. Test Eliminación Exitosa
+    EXEC Ventas.sp_EliminarVenta @idVenta = @idVentaTest;
+
+    PRINT 'Evidencia post-eliminación (Debe retornar vacío):';
+    SELECT * FROM Ventas.Venta WHERE idVenta = @idVentaTest;
+
+END TRY
+BEGIN CATCH
+    PRINT 'Error imprevisto en ejecución de pruebas de ventas: ' + ERROR_MESSAGE();
+END CATCH;
+
+ROLLBACK TRANSACTION;
+GO
+
+
+-- ************************************************************************
+-- TEST VENTA: CASOS DE ERROR CONTROLADOS
+-- ************************************************************************
+
+-- Prueba A: Cliente falso, datos nulos y total negativo juntos
+BEGIN TRANSACTION;
+BEGIN TRY
+    EXEC Ventas.sp_AltaVenta
+        @idVisitante = -1,
+        @formaPago = '   ',
+        @puntoVenta = NULL,
+        @total = -1500.00;
+END TRY
+BEGIN CATCH
+    SELECT value AS [Errores Atrapados (Venta Inválida)]
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10)) WHERE value <> '';
+END CATCH;
+
+-- Prueba B: Modificación con ID de ticket inexistente
+BEGIN TRY
+    EXEC Ventas.sp_ModificacionVenta
+        @idVenta = -999,
+        @idVisitante = 1,
+        @formaPago = 'Efectivo',
+        @puntoVenta = 'Puesto Movil',
+        @total = 100.00;
+END TRY
+BEGIN CATCH
+    SELECT value AS [Errores Atrapados (ID Ticket Inexistente)]
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10)) WHERE value <> '';
+END CATCH;
+
+ROLLBACK TRANSACTION;
+GO
