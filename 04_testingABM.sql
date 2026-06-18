@@ -1268,3 +1268,75 @@ BEGIN CATCH
 END CATCH;
 ROLLBACK TRANSACTION;
 GO
+
+
+
+USE ParquesNacionales;
+GO
+
+-- '========================================================================';
+-- 'TEST CASO EXITOSO: ALTA -> MODIFICACIÓN -> ELIMINACIÓN';
+-- '========================================================================';
+
+BEGIN TRANSACTION; -- Inicio de zona segura de pruebas sin datos basura
+BEGIN TRY
+    DECLARE @idGenerado INT;
+
+    -- 1. Probar Alta Exitosa
+    EXEC Concesiones.sp_AltaEmpresaConcesionaria
+        @cuit = '20123456789',
+        @razonSocial = 'TEST_Paradores de la Selva S.A.',
+        @contacto = 'info@paradoresselva.com';
+
+    -- Evidencia del alta mediante consulta directa
+    PRINT 'Evidencia post-alta:';
+    SELECT * FROM Concesiones.EmpresaConcesionaria WHERE cuit = '20123456789';
+
+    SELECT @idGenerado = idEmpresaConcesionaria FROM Concesiones.EmpresaConcesionaria WHERE cuit = '20123456789';
+
+    -- 2. Probar Modificación Exitosa
+    EXEC Concesiones.sp_ModificacionEmpresaConcesionaria
+        @idEmpresaConcesionaria = @idGenerado,
+        @cuit = '20123456789',
+        @razonSocial = 'TEST_Paradores y Refugios de la Selva S.A.',
+        @contacto = 'nuevo_contacto@paradoresselva.com';
+
+    PRINT 'Evidencia post-modificación:';
+    SELECT * FROM Concesiones.EmpresaConcesionaria WHERE idEmpresaConcesionaria = @idGenerado;
+
+    -- 3. Probar Eliminación Exitosa
+    EXEC Concesiones.sp_EliminarEmpresaConcesionaria @idEmpresaConcesionaria = @idGenerado;
+
+    PRINT 'Evidencia post-eliminación (Debe retornar 0 filas):';
+    SELECT * FROM Concesiones.EmpresaConcesionaria WHERE idEmpresaConcesionaria = @idGenerado;
+
+END TRY
+BEGIN CATCH
+    PRINT 'Error inesperado durante la ejecución del test: ' + ERROR_MESSAGE();
+END CATCH;
+
+ROLLBACK TRANSACTION; -- La base vuelve a su estado original e intacto
+GO
+
+
+-- '========================================================================';
+-- 'TEST CASO FALLIDO: SIMULACIÓN DE INFRACCIÓN A VALIDACIONES';
+-- '========================================================================';
+-- ESCENARIO ESPERADO: El SP debe interceptar los fallos y concatenar ambos
+-- en un mismo string (CUIT inválido menor a 11 caracteres y Razón Social vacía).
+
+BEGIN TRANSACTION;
+BEGIN TRY
+    EXEC Concesiones.sp_AltaEmpresaConcesionaria
+        @cuit = '12345',    -- Fuerza error de longitud
+        @razonSocial = ' ', -- Fuerza error de campo vacío
+        @contacto = NULL;
+END TRY
+BEGIN CATCH
+    PRINT 'Mensaje consolidado capturado con éxito para el usuario final:';
+    SELECT value AS [Errores Atrapados]
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO

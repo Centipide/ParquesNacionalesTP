@@ -1339,4 +1339,107 @@ BEGIN
         estaActivo = 0
     WHERE idGuia=@idGuia;
 END
+-- TABLA EmpresaConcesionaria
+-- ==========================================================
+
+CREATE OR ALTER PROCEDURE Concesiones.sp_AltaEmpresaConcesionaria
+    @cuit        CHAR(11),
+    @razonSocial VARCHAR(100),
+    @contacto    VARCHAR(200) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    -- Validación 1: CUIT obligatorio, no vacío y longitud exacta
+    IF @cuit IS NULL OR LEN(LTRIM(RTRIM(@cuit))) <> 11
+        SET @errores += '- El CUIT es obligatorio y debe contener exactamente 11 caracteres numéricos.' + CHAR(10);
+    
+    -- Validación 2: Unicidad del CUIT (Evitar duplicados en el padrón)
+    IF EXISTS (SELECT 1 FROM Concesiones.EmpresaConcesionaria WHERE cuit = @cuit)
+        SET @errores += '- El CUIT ingresado ya se encuentra asignado a otra empresa concesionaria.' + CHAR(10);
+
+    -- Validación 3: Razón Social obligatoria y no vacía
+    IF @razonSocial IS NULL OR LTRIM(RTRIM(@razonSocial)) = ''
+        SET @errores += '- La razón social es un campo obligatorio y no puede quedar vacío.' + CHAR(10);
+
+    -- Evaluación del acumulador unificado de la cátedra
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Concesiones.EmpresaConcesionaria (cuit, razonSocial, contacto)
+    VALUES (LTRIM(RTRIM(@cuit)), LTRIM(RTRIM(@razonSocial)), LTRIM(RTRIM(@contacto)));
+
+    SELECT SCOPE_IDENTITY() AS idEmpresaConcesionariaNueva;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Concesiones.sp_ModificacionEmpresaConcesionaria
+    @idEmpresaConcesionaria INT,
+    @cuit                   CHAR(11),
+    @razonSocial            VARCHAR(100),
+    @contacto               VARCHAR(200) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    -- Validación 1: Existencia del ID maestro
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.EmpresaConcesionaria WHERE idEmpresaConcesionaria = @idEmpresaConcesionaria)
+        SET @errores += '- El ID de la empresa concesionaria especificado no existe.' + CHAR(10);
+
+    -- Validación 2: CUIT válido
+    IF @cuit IS NULL OR LEN(LTRIM(RTRIM(@cuit))) <> 11
+        SET @errores += '- El CUIT es obligatorio y debe poseer 11 caracteres.' + CHAR(10);
+
+    -- Validación 3: Evitar colisión de CUIT con OTRA empresa al modificar
+    IF EXISTS (SELECT 1 FROM Concesiones.EmpresaConcesionaria WHERE cuit = @cuit AND idEmpresaConcesionaria <> @idEmpresaConcesionaria)
+        SET @errores += '- El nuevo CUIT ingresado ya pertenece a otra empresa concesionaria.' + CHAR(10);
+
+    -- Validación 4: Razón Social válida
+    IF @razonSocial IS NULL OR LTRIM(RTRIM(@razonSocial)) = ''
+        SET @errores += '- La razón social es obligatoria.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    UPDATE Concesiones.EmpresaConcesionaria
+    SET cuit = LTRIM(RTRIM(@cuit)),
+        razonSocial = LTRIM(RTRIM(@razonSocial)),
+        contacto = LTRIM(RTRIM(@contacto))
+    WHERE idEmpresaConcesionaria = @idEmpresaConcesionaria;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Concesiones.sp_EliminarEmpresaConcesionaria
+    @idEmpresaConcesionaria INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.EmpresaConcesionaria WHERE idEmpresaConcesionaria = @idEmpresaConcesionaria)
+        SET @errores += '- El ID de la empresa a eliminar no existe.' + CHAR(10);
+
+    -- Validación crítica: No romper la integridad referencial (FK de contratos de Concesión)
+    IF EXISTS (SELECT 1 FROM Concesiones.Concesion WHERE idEmpresaConcesionaria = @idEmpresaConcesionaria)
+        SET @errores += '- Restricción de Integridad: No se puede eliminar la empresa porque posee contratos de concesión activos o históricos asignados.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    DELETE FROM Concesiones.EmpresaConcesionaria 
+    WHERE idEmpresaConcesionaria = @idEmpresaConcesionaria;
+    
+    PRINT 'Empresa concesionaria eliminada correctamente.';
+END;
 GO

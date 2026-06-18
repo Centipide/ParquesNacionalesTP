@@ -4,8 +4,7 @@
 --              de Actividades
 -- ============================================================
 
-USE ParquesNacionales;
-GO
+
 
 /*
 	Cuando se registra una Actividad realizada, deberíamos
@@ -18,8 +17,13 @@ GO
 	y Realizar:
 	- Cambiar el estado de la ActividadProgramada a Realizada
 	- Cambiar el estado de la contratacion vinculada a Realizada.
-	
 */
+
+
+
+
+USE ParquesNacionales;
+GO
 
 CREATE OR ALTER PROCEDURE Actividades.sp_RegistrarActividadRealizada
 	@idActividadProgramada	INT,
@@ -36,10 +40,10 @@ BEGIN
 	WHERE idActividadProgramada = @idActividadProgramada;
 	
 	IF @estadoActividad IS NULL
-		SET @errores = @errores + 'El id de Actividad Programada no existe. ';
+		SET @errores = @errores + 'El id de Actividad Programada no existe' + CHAR(10);
 
 	ELSE IF @estadoActividad <> 'Programada'
-		SET @errores = @errores + 'La Actividad Programada esta en estado ' + @estadoActividad + '. ';
+		SET @errores = @errores + 'La Actividad Programada ya estaba en estado ' + @estadoActividad + CHAR(10);
 	
 	ELSE
 	BEGIN
@@ -48,7 +52,7 @@ BEGIN
 			FROM Actividades.Contratacion
 			WHERE idActividadProgramada = @idActividadProgramada
 		)
-			SET @errores = @errores + 'No existen contrataciones vinculadas a la actividad. ';
+			SET @errores = @errores + 'No existen contrataciones vinculadas a la actividad.' + CHAR(10);
 
     ELSE IF NOT EXISTS (
         SELECT 1
@@ -56,7 +60,7 @@ BEGIN
         WHERE idActividadProgramada = @idActividadProgramada
           AND estado = 'Confirmada'
     )
-        SET @errores = @errores + 'No existen contrataciones confirmadas para la actividad. ';
+        SET @errores = @errores + 'No existen contrataciones confirmadas para la actividad.' + CHAR(10);
 	END
 
 	IF @errores != ''
@@ -109,7 +113,7 @@ BEGIN
         SET @errores = @errores + 'El id de Actividad Programada no existe. ';
 
     ELSE IF @estadoActividad <> 'Programada'
-        SET @errores = @errores + 'La Actividad Programada esta en estado ' + @estadoActividad + '. ';
+        SET @errores = @errores + 'La Actividad Programada ya estaba en estado ' + @estadoActividad + '. ';
 
     IF @errores != ''
     BEGIN
@@ -129,7 +133,7 @@ BEGIN
             UPDATE Actividades.Contratacion
             SET estado = 'Cancelada'
             WHERE idActividadProgramada = @idActividadProgramada
-              AND estado IN ('Pendiente', 'Confirmada');
+              AND estado = 'Confirmada';
 
         COMMIT TRANSACTION
 
@@ -162,7 +166,7 @@ BEGIN
         SET @errores = @errores + 'El id de Contratacion no existe. ';
 
     ELSE IF @estadoContratacion <> 'Confirmada'
-        SET @errores = @errores + 'La Contratacion esta en estado ' + @estadoContratacion + '. ';
+        SET @errores = @errores + 'La Contratacion ya estaba en estado ' + @estadoContratacion + '. ';
 
     IF @errores != ''
     BEGIN
@@ -175,3 +179,5 @@ BEGIN
     WHERE idContratacion = @idContratacion;
 END
 GO
+
+
