@@ -1782,3 +1782,106 @@ BEGIN
     PRINT 'Visitante removido del padrón de forma exitosa.';
 END;
 GO
+
+
+-- ==========================================================
+-- TABLA Entrada
+-- ==========================================================
+CREATE OR ALTER PROCEDURE Ventas.sp_AltaEntrada
+    @idParque        INT,
+    @idTipoVisitante INT,
+    @monto           DECIMAL(10,2)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Parques.Parque WHERE idParque = @idParque)
+        SET @errores += '- El ID de parque especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.TipoVisitante WHERE idTipoVisitante = @idTipoVisitante)
+        SET @errores += '- El ID del tipo de visitante especificado no existe.' + CHAR(10);
+
+    IF @monto IS NULL OR @monto < 0
+        SET @errores += '- El monto de la tarifa no puede ser nulo ni tomar valores negativos.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Ventas.Entrada WHERE idParque = @idParque AND idTipoVisitante = @idTipoVisitante)
+        SET @errores += '- Error de catálogo: Ya existe una tarifa definida para ese Tipo de Visitante en el parque seleccionado.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Ventas.Entrada (idParque, idTipoVisitante, precio)
+    VALUES (@idParque, @idTipoVisitante, @monto);
+
+    SELECT SCOPE_IDENTITY() AS idEntradaNueva;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_ModificacionEntrada
+    @idEntrada       INT,
+    @idParque        INT,
+    @idTipoVisitante INT,
+    @monto           DECIMAL(10,2)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Entrada WHERE idEntrada = @idEntrada)
+        SET @errores += '- El ID del registro tarifario de entrada especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Parques.Parque WHERE idParque = @idParque)
+        SET @errores += '- El ID de parque especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.TipoVisitante WHERE idTipoVisitante = @idTipoVisitante)
+        SET @errores += '- El ID del tipo de visitante especificado no existe.' + CHAR(10);
+
+    IF @monto IS NULL OR @monto < 0
+        SET @errores += '- El monto de la tarifa es un campo obligatorio y no puede ser negativo.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Ventas.Entrada WHERE idParque = @idParque AND idTipoVisitante = @idTipoVisitante AND idEntrada <> @idEntrada)
+        SET @errores += '- Ya se encuentra registrado otro tarifario para esa combinación de parque y categoría.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    UPDATE Ventas.Entrada
+    SET idParque = @idParque,
+        idTipoVisitante = @idTipoVisitante,
+        precio = @monto
+    WHERE idEntrada = @idEntrada;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_EliminarEntrada
+    @idEntrada INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Entrada WHERE idEntrada = @idEntrada)
+        SET @errores += '- El ID de la tarifa a eliminar no existe.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Ventas.DetalleVenta WHERE idEntrada = @idEntrada)
+        SET @errores += '- Restricción de Integridad: No es posible eliminar el ítem de tarifa debido a que existen comprobantes de venta emitidos asociados a este código.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    DELETE FROM Ventas.Entrada 
+    WHERE idEntrada = @idEntrada;
+    
+    PRINT 'Tarifa de acceso removida correctamente del sistema.';
+END;
+GO

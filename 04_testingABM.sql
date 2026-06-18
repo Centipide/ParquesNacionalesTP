@@ -1908,3 +1908,115 @@ END CATCH;
 
 ROLLBACK TRANSACTION;
 GO
+
+-- ========================================================================
+-- TESTING DE ENTRADA
+-- ========================================================================
+-- ************************************************************************
+-- TEST ENTRADA: CASO EXITOSO
+-- ************************************************************************
+
+BEGIN TRANSACTION;
+BEGIN TRY
+    DECLARE @idParque INT, @idTipoVisitante INT, @idEntradaTest INT;
+    DECLARE @idTipoParque INT;
+
+    -- Datos soporte mínimos para la integridad referencial
+    INSERT INTO Parques.TipoParque (nombre) VALUES ('TEST_VentasEnt');
+    SET @idTipoParque = SCOPE_IDENTITY();
+
+    INSERT INTO Parques.Parque (idTipoParque, nombre, localidad, provincia, superficie)
+    VALUES (@idTipoParque, 'TEST_Parque Costero', 'Localidad E', 'Provincia E', 1200.00);
+    SET @idParque = SCOPE_IDENTITY();
+
+    INSERT INTO Ventas.TipoVisitante (nombre, descripcion)
+    VALUES ('TEST_Jubilado Nacional', 'Pase con descuento especial de la tercera edad.');
+    SET @idTipoVisitante = SCOPE_IDENTITY();
+
+    -- 1. Test Alta Exitosa
+    EXEC Ventas.sp_AltaEntrada
+        @idParque = @idParque,
+        @idTipoVisitante = @idTipoVisitante,
+        @monto = 2500.00;
+
+    PRINT 'Evidencia post-alta:';
+    SELECT * FROM Ventas.Entrada WHERE idParque = @idParque;
+
+    SELECT @idEntradaTest = idEntrada FROM Ventas.Entrada WHERE idParque = @idParque;
+
+    -- 2. Test Modificación Exitosa (Ajuste de cuadro tarifario)
+    EXEC Ventas.sp_ModificacionEntrada
+        @idEntrada = @idEntradaTest,
+        @idParque = @idParque,
+        @idTipoVisitante = @idTipoVisitante,
+        @monto = 3200.00;
+
+    PRINT 'Evidencia post-modificación:';
+    SELECT * FROM Ventas.Entrada WHERE idEntrada = @idEntradaTest;
+
+    -- 3. Test Eliminación Exitosa
+    EXEC Ventas.sp_EliminarEntrada @idEntrada = @idEntradaTest;
+
+    PRINT 'Evidencia post-eliminación (Debe retornar vacío):';
+    SELECT * FROM Ventas.Entrada WHERE idEntrada = @idEntradaTest;
+
+END TRY
+BEGIN CATCH
+    PRINT 'Error inesperado detectado en flujo de tarifas: ' + ERROR_MESSAGE();
+END CATCH;
+
+ROLLBACK TRANSACTION;
+GO
+
+
+-- ************************************************************************
+-- TEST ENTRADA: CASOS DE ERROR CONTROLADOS
+-- ************************************************************************
+
+-- Prueba A: Claves inexistentes, monto nulo y negativo de forma acumulada
+BEGIN TRANSACTION;
+BEGIN TRY
+    EXEC Ventas.sp_AltaEntrada
+        @idParque = -1,
+        @idTipoVisitante = -1,
+        @monto = -450.00;
+END TRY
+BEGIN CATCH
+    SELECT value AS [Errores Atrapados (Datos Inválidos)]
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10)) WHERE value <> '';
+END CATCH;
+
+-- Prueba B: Violación de índice de unicidad compuesta
+BEGIN TRY
+    DECLARE @idPK INT, @idTV INT;
+
+    -- Usamos tus SPs oficiales para generar las semillas con sus datos obligatorios
+    EXEC Parques.sp_AltaTipoParque @nombre = 'TEST_T1', @descripcion = 'Test Unicidad';
+    
+    -- Capturamos el ID del parque usando tu SP base
+    EXEC Parques.sp_AltaParque 
+        @idTipoParque = 1, 
+        @nombre = 'Parque Test Unicidad Compuesta', 
+        @localidad = 'Localidad Test', 
+        @provincia = 'Provincia Test', 
+        @superficie = 500.00;
+        
+    SELECT @idPK = MAX(idParque) FROM Parques.Parque WHERE nombre = 'Parque Test Unicidad Compuesta';
+
+    -- Generamos la categoría de visitante con el SP oficial
+    EXEC Ventas.sp_AltaTipoVisitante @nombre = 'TEST_V1', @descripcion = 'Test Unicidad';
+    SELECT @idTV = MAX(idTipoVisitante) FROM Ventas.TipoVisitante WHERE nombre = 'TEST_V1';
+
+    -- 1. Insertamos el primer registro tarifario real
+    EXEC Ventas.sp_AltaEntrada @idParque = @idPK, @idTipoVisitante = @idTV, @monto = 1000.00;
+
+    -- 2. Forzamos el alta de la MISMA combinación
+    EXEC Ventas.sp_AltaEntrada @idParque = @idPK, @idTipoVisitante = @idTV, @monto = 1500.00;
+END TRY
+BEGIN CATCH
+    SELECT value AS [Errores Atrapados (Combinación Duplicada)]
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10)) WHERE value <> '';
+END CATCH;
+
+ROLLBACK TRANSACTION;
+GO
