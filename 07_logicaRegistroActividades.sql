@@ -25,7 +25,7 @@
 USE ParquesNacionales;
 GO
 
-CREATE OR ALTER PROCEDURE Actividades.sp_RegistrarActividadRealizada
+CREATE OR ALTER PROCEDURE Actividades.sp_AltaActividadRealizada
 	@idActividadProgramada	INT,
 	@observaciones			VARCHAR(300) = NULL
 AS

@@ -117,7 +117,7 @@ BEGIN TRANSACTION
 
     -- Ejecución
 
-    EXEC Actividades.sp_RegistrarActividadRealizada
+    EXEC Actividades.sp_AltaActividadRealizada
         @idActividadProgramada = @idActividadProgramada,
         @observaciones = 'Actividad realizada correctamente';
 
