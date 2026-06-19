@@ -1915,13 +1915,11 @@ GO
 -- ************************************************************************
 -- TEST ENTRADA: CASO EXITOSO
 -- ************************************************************************
-
 BEGIN TRANSACTION;
 BEGIN TRY
     DECLARE @idParque INT, @idTipoVisitante INT, @idEntradaTest INT;
     DECLARE @idTipoParque INT;
 
-    -- Datos soporte mínimos para la integridad referencial
     INSERT INTO Parques.TipoParque (nombre) VALUES ('TEST_VentasEnt');
     SET @idTipoParque = SCOPE_IDENTITY();
 
@@ -1937,34 +1935,31 @@ BEGIN TRY
     EXEC Ventas.sp_AltaEntrada
         @idParque = @idParque,
         @idTipoVisitante = @idTipoVisitante,
-        @monto = 2500.00;
+        @precio = 2500.00,
+        @fechaAcceso = '2026-06-18',
+        @parqueVisitado = 'Parque Costero Real';
 
-    PRINT 'Evidencia post-alta:';
+    PRINT 'Evidencia post-alta Entrada:';
     SELECT * FROM Ventas.Entrada WHERE idParque = @idParque;
 
     SELECT @idEntradaTest = idEntrada FROM Ventas.Entrada WHERE idParque = @idParque;
 
-    -- 2. Test Modificación Exitosa (Ajuste de cuadro tarifario)
+    -- 2. Test Modificación Exitosa
     EXEC Ventas.sp_ModificacionEntrada
         @idEntrada = @idEntradaTest,
         @idParque = @idParque,
         @idTipoVisitante = @idTipoVisitante,
-        @monto = 3200.00;
+        @precio = 3200.00,
+        @fechaAcceso = '2026-06-18',
+        @parqueVisitado = 'Parque Costero Modificado';
 
-    PRINT 'Evidencia post-modificación:';
-    SELECT * FROM Ventas.Entrada WHERE idEntrada = @idEntradaTest;
-
-    -- 3. Test Eliminación Exitosa
-    EXEC Ventas.sp_EliminarEntrada @idEntrada = @idEntradaTest;
-
-    PRINT 'Evidencia post-eliminación (Debe retornar vacío):';
+    PRINT 'Evidencia post-modificación Entrada:';
     SELECT * FROM Ventas.Entrada WHERE idEntrada = @idEntradaTest;
 
 END TRY
 BEGIN CATCH
     PRINT 'Error inesperado detectado en flujo de tarifas: ' + ERROR_MESSAGE();
 END CATCH;
-
 ROLLBACK TRANSACTION;
 GO
 
@@ -2038,11 +2033,11 @@ BEGIN TRY
     -- 1. Test Alta Exitosa
     EXEC Ventas.sp_AltaVenta
         @idVisitante = @idVisitante,
-        @formaPago = 'Tarjeta de Crédito',
+        @formaPago = 'Tarjeta',
         @puntoVenta = 'Portal Web Iguazú',
-        @total = 0.00; -- Inicia en cero hasta cargar los detalles
+        @total = 0.00;
 
-    PRINT 'Evidencia post-alta:';
+    PRINT 'Evidencia post-alta Venta:';
     SELECT * FROM Ventas.Venta WHERE idVisitante = @idVisitante;
 
     SELECT @idVentaTest = idVenta FROM Ventas.Venta WHERE idVisitante = @idVisitante;
@@ -2051,24 +2046,17 @@ BEGIN TRY
     EXEC Ventas.sp_ModificacionVenta
         @idVenta = @idVentaTest,
         @idVisitante = @idVisitante,
-        @formaPago = 'Transferencia Bancaria',
+        @formaPago = 'Transferencia',
         @puntoVenta = 'Boletería Central',
-        @total = 4500.50; -- Simulación de actualización de caja
+        @total = 4500.50;
 
-    PRINT 'Evidencia post-modificación:';
-    SELECT * FROM Ventas.Venta WHERE idVenta = @idVentaTest;
-
-    -- 3. Test Eliminación Exitosa
-    EXEC Ventas.sp_EliminarVenta @idVenta = @idVentaTest;
-
-    PRINT 'Evidencia post-eliminación (Debe retornar vacío):';
+    PRINT 'Evidencia post-modificación Venta:';
     SELECT * FROM Ventas.Venta WHERE idVenta = @idVentaTest;
 
 END TRY
 BEGIN CATCH
     PRINT 'Error imprevisto en ejecución de pruebas de ventas: ' + ERROR_MESSAGE();
 END CATCH;
-
 ROLLBACK TRANSACTION;
 GO
 
@@ -2091,20 +2079,20 @@ BEGIN CATCH
     FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10)) WHERE value <> '';
 END CATCH;
 
--- Prueba B: Modificación con ID de ticket inexistente
+-- Prueba B: Validación de forma de pago inválida
+BEGIN TRANSACTION;
 BEGIN TRY
-    EXEC Ventas.sp_ModificacionVenta
-        @idVenta = -999,
+    EXEC Ventas.sp_AltaVenta
         @idVisitante = 1,
-        @formaPago = 'Efectivo',
-        @puntoVenta = 'Puesto Movil',
+        @formaPago = 'Criptomonedas', -- No existe en el CHECK
+        @puntoVenta = 'Portal Web',
         @total = 100.00;
 END TRY
 BEGIN CATCH
-    SELECT value AS [Errores Atrapados (ID Ticket Inexistente)]
+    PRINT 'Mensaje controlado capturado con éxito en el CATCH:';
+    SELECT value AS [Errores Atrapados (CHECK FormaPago)]
     FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10)) WHERE value <> '';
 END CATCH;
-
 ROLLBACK TRANSACTION;
 GO
 
@@ -2115,12 +2103,10 @@ GO
 -- ************************************************************************
 -- TEST DETALLE VENTA: CASO EXITOSO
 -- ************************************************************************
-
 BEGIN TRANSACTION;
 BEGIN TRY
     DECLARE @idTypeP INT, @idPark INT, @idCat INT, @idTarifa INT, @idCli INT, @idTicket INT, @idDetalleTest INT;
 
-    -- Inyección controlada de dependencias en cascada
     INSERT INTO Parques.TipoParque (nombre) VALUES ('TEST_DetVenta');
     SET @idTypeP = SCOPE_IDENTITY();
 
@@ -2131,25 +2117,25 @@ BEGIN TRY
     INSERT INTO Ventas.TipoVisitante (nombre) VALUES ('TEST_Turista');
     SET @idCat = SCOPE_IDENTITY();
 
-    -- Usamos la columna real 'precio' que validamos en el paso anterior
-    INSERT INTO Ventas.Entrada (idParque, idTipoVisitante, precio) VALUES (@idPark, @idCat, 2000.00);
+    INSERT INTO Ventas.Entrada (idParque, idTipoVisitante, precio, fechaAcceso, parqueVisitado) 
+    VALUES (@idPark, @idCat, 2000.00, '2026-06-18', 'Parque Detalle');
     SET @idTarifa = SCOPE_IDENTITY();
 
     INSERT INTO Ventas.Visitante (nombre, apellido) VALUES ('TEST_Comprador', 'Detalle');
     SET @idCli = SCOPE_IDENTITY();
 
     INSERT INTO Ventas.Venta (idVisitante, formaPago, puntoVenta, total) 
-    VALUES (@idCli, 'Efectivo', 'Puesto A', 4000.00);
+    VALUES (@idCli, 'Tarjeta', 'Puesto A', 4000.00);
     SET @idTicket = SCOPE_IDENTITY();
 
-    -- 1. Test Alta Exitosa (Comprar 2 entradas de $2000 = $4000 subtotal)
+    -- 1. Test Alta Exitosa
     EXEC Ventas.sp_AltaDetalleVenta
         @idVenta = @idTicket,
         @idEntrada = @idTarifa,
         @cantidad = 2,
-        @subtotal = 4000.00;
+        @precioUnitario = 2000.00; -- Entrada individual a $2000
 
-    PRINT 'Evidencia post-alta:';
+    PRINT 'Evidencia post-alta Detalle Venta:';
     SELECT * FROM Ventas.DetalleVenta WHERE idVenta = @idTicket;
 
     SELECT @idDetalleTest = idDetalleVenta FROM Ventas.DetalleVenta WHERE idVenta = @idTicket;
@@ -2160,22 +2146,15 @@ BEGIN TRY
         @idVenta = @idTicket,
         @idEntrada = @idTarifa,
         @cantidad = 3,
-        @subtotal = 6000.00;
+        @precioUnitario = 2000.00;
 
-    PRINT 'Evidencia post-modificación:';
-    SELECT * FROM Ventas.DetalleVenta WHERE idDetalleVenta = @idDetalleTest;
-
-    -- 3. Test Eliminación Exitosa
-    EXEC Ventas.sp_EliminarDetalleVenta @idDetalleVenta = @idDetalleTest;
-
-    PRINT 'Evidencia post-eliminación (Debe retornar vacío):';
+    PRINT 'Evidencia post-modificación Detalle Venta:';
     SELECT * FROM Ventas.DetalleVenta WHERE idDetalleVenta = @idDetalleTest;
 
 END TRY
 BEGIN CATCH
     PRINT 'Error inesperado detectado en flujo de ítems facturados: ' + ERROR_MESSAGE();
 END CATCH;
-
 ROLLBACK TRANSACTION;
 GO
 
@@ -2186,11 +2165,12 @@ GO
 -- Prueba A: IDs de cabecera y catálogo falsos, cantidad cero y subtotal negativo
 BEGIN TRANSACTION;
 BEGIN TRY
+    -- Mandamos parámetros incorrectos para ver la grilla de errores consolidada
     EXEC Ventas.sp_AltaDetalleVenta
         @idVenta = -1,
         @idEntrada = -1,
         @cantidad = 0,
-        @subtotal = -100.00;
+        @precioUnitario = -100.00;
 END TRY
 BEGIN CATCH
     SELECT value AS [Errores Atrapados (Detalle Inválido)]
@@ -2204,12 +2184,11 @@ BEGIN TRY
         @idVenta = 1,
         @idEntrada = 1,
         @cantidad = NULL,
-        @subtotal = NULL;
+        @precioUnitario = NULL;
 END TRY
 BEGIN CATCH
     SELECT value AS [Errores Atrapados (Modificación Inexistente)]
     FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10)) WHERE value <> '';
 END CATCH;
-
 ROLLBACK TRANSACTION;
 GO

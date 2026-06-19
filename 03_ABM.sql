@@ -1790,7 +1790,9 @@ GO
 CREATE OR ALTER PROCEDURE Ventas.sp_AltaEntrada
     @idParque        INT,
     @idTipoVisitante INT,
-    @monto           DECIMAL(10,2)
+    @precio          DECIMAL(10,2),
+    @fechaAcceso     DATE = NULL,          -- Parámetro de mitigación NOT NULL
+    @parqueVisitado  VARCHAR(150) = NULL   -- Parámetro de mitigación NOT NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1802,8 +1804,8 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM Ventas.TipoVisitante WHERE idTipoVisitante = @idTipoVisitante)
         SET @errores += '- El ID del tipo de visitante especificado no existe.' + CHAR(10);
 
-    IF @monto IS NULL OR @monto < 0
-        SET @errores += '- El monto de la tarifa no puede ser nulo ni tomar valores negativos.' + CHAR(10);
+    IF @precio IS NULL OR @precio < 0
+        SET @errores += '- El precio de la tarifa no puede ser nulo ni tomar valores negativos.' + CHAR(10);
 
     IF EXISTS (SELECT 1 FROM Ventas.Entrada WHERE idParque = @idParque AND idTipoVisitante = @idTipoVisitante)
         SET @errores += '- Error de catálogo: Ya existe una tarifa definida para ese Tipo de Visitante en el parque seleccionado.' + CHAR(10);
@@ -1814,8 +1816,14 @@ BEGIN
         RETURN;
     END
 
-    INSERT INTO Ventas.Entrada (idParque, idTipoVisitante, precio)
-    VALUES (@idParque, @idTipoVisitante, @monto);
+    INSERT INTO Ventas.Entrada (idParque, idTipoVisitante, precio, fechaAcceso, parqueVisitado)
+    VALUES (
+        @idParque, 
+        @idTipoVisitante, 
+        @precio, 
+        COALESCE(@fechaAcceso, CAST(GETDATE() AS DATE)), 
+        COALESCE(@parqueVisitado, 'Carga Catálogo Automática')
+    );
 
     SELECT SCOPE_IDENTITY() AS idEntradaNueva;
 END;
@@ -1825,7 +1833,9 @@ CREATE OR ALTER PROCEDURE Ventas.sp_ModificacionEntrada
     @idEntrada       INT,
     @idParque        INT,
     @idTipoVisitante INT,
-    @monto           DECIMAL(10,2)
+    @precio          DECIMAL(10,2),
+    @fechaAcceso     DATE = NULL,
+    @parqueVisitado  VARCHAR(150) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1840,8 +1850,8 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM Ventas.TipoVisitante WHERE idTipoVisitante = @idTipoVisitante)
         SET @errores += '- El ID del tipo de visitante especificado no existe.' + CHAR(10);
 
-    IF @monto IS NULL OR @monto < 0
-        SET @errores += '- El monto de la tarifa es un campo obligatorio y no puede ser negativo.' + CHAR(10);
+    IF @precio IS NULL OR @precio < 0
+        SET @errores += '- El precio de la tarifa es un campo obligatorio y no puede ser negativo.' + CHAR(10);
 
     IF EXISTS (SELECT 1 FROM Ventas.Entrada WHERE idParque = @idParque AND idTipoVisitante = @idTipoVisitante AND idEntrada <> @idEntrada)
         SET @errores += '- Ya se encuentra registrado otro tarifario para esa combinación de parque y categoría.' + CHAR(10);
@@ -1855,7 +1865,9 @@ BEGIN
     UPDATE Ventas.Entrada
     SET idParque = @idParque,
         idTipoVisitante = @idTipoVisitante,
-        precio = @monto
+        precio = @precio,
+        fechaAcceso = COALESCE(@fechaAcceso, fechaAcceso, CAST(GETDATE() AS DATE)),
+        parqueVisitado = COALESCE(@parqueVisitado, parqueVisitado, 'Modificación Catálogo Automática')
     WHERE idEntrada = @idEntrada;
 END;
 GO
@@ -1903,8 +1915,8 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM Ventas.Visitante WHERE idVisitante = @idVisitante)
         SET @errores += '- El ID de visitante especificado no existe en el sistema.' + CHAR(10);
 
-    IF @formaPago IS NULL OR LTRIM(RTRIM(@formaPago)) = ''
-        SET @errores += '- La forma de pago es un campo obligatorio.' + CHAR(10);
+    IF @formaPago IS NULL OR LTRIM(RTRIM(@formaPago)) NOT IN ('Efectivo', 'Tarjeta', 'Transferencia', 'Digital')
+        SET @errores += '- La forma de pago ingresada no es válida. (Valores aceptados: Efectivo, Tarjeta, Transferencia, Digital).' + CHAR(10);
 
     IF @puntoVenta IS NULL OR LTRIM(RTRIM(@puntoVenta)) = ''
         SET @errores += '- El punto de venta/emisión del ticket es obligatorio.' + CHAR(10);
@@ -1942,8 +1954,8 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM Ventas.Visitante WHERE idVisitante = @idVisitante)
         SET @errores += '- El ID de visitante especificado no existe.' + CHAR(10);
 
-    IF @formaPago IS NULL OR LTRIM(RTRIM(@formaPago)) = ''
-        SET @errores += '- La forma de pago es un campo requerido.' + CHAR(10);
+    IF @formaPago IS NULL OR LTRIM(RTRIM(@formaPago)) NOT IN ('Efectivo', 'Tarjeta', 'Transferencia', 'Digital')
+        SET @errores += '- La forma de pago modificada no es válida. (Valores aceptados: Efectivo, Tarjeta, Transferencia, Digital).' + CHAR(10);
 
     IF @puntoVenta IS NULL OR LTRIM(RTRIM(@puntoVenta)) = ''
         SET @errores += '- El punto de venta es requerido.' + CHAR(10);
@@ -1996,12 +2008,11 @@ GO
 -- ==========================================================
 -- TABLA DetalleVenta
 -- ==========================================================
-
 CREATE OR ALTER PROCEDURE Ventas.sp_AltaDetalleVenta
-    @idVenta    INT,
-    @idEntrada  INT,
-    @cantidad   INT,
-    @subtotal   DECIMAL(12,2)
+    @idVenta         INT,
+    @idEntrada       INT,
+    @cantidad        INT,
+    @precioUnitario  DECIMAL(12,2)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -2016,8 +2027,8 @@ BEGIN
     IF @cantidad IS NULL OR @cantidad <= 0
         SET @errores += '- La cantidad de entradas por ítem debe ser estrictamente mayor a cero.' + CHAR(10);
 
-    IF @subtotal IS NULL OR @subtotal < 0
-        SET @errores += '- El monto del subtotal del renglón no puede tomar valores negativos.' + CHAR(10);
+    IF @precioUnitario IS NULL OR @precioUnitario < 0
+        SET @errores += '- El precio unitario del renglón no puede tomar valores negativos.' + CHAR(10);
 
     IF @errores <> ''
     BEGIN
@@ -2026,7 +2037,7 @@ BEGIN
     END
 
     INSERT INTO Ventas.DetalleVenta (idVenta, idEntrada, cantidad, precio)
-    VALUES (@idVenta, @idEntrada, @cantidad, @subtotal);
+    VALUES (@idVenta, @idEntrada, @cantidad, @precioUnitario);
 
     SELECT SCOPE_IDENTITY() AS idDetalleVentaNuevo;
 END;
@@ -2037,7 +2048,7 @@ CREATE OR ALTER PROCEDURE Ventas.sp_ModificacionDetalleVenta
     @idVenta        INT,
     @idEntrada      INT,
     @cantidad       INT,
-    @subtotal       DECIMAL(12,2)
+    @precioUnitario  DECIMAL(12,2)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -2055,8 +2066,8 @@ BEGIN
     IF @cantidad IS NULL OR @cantidad <= 0
         SET @errores += '- La cantidad modificada debe ser mayor a cero.' + CHAR(10);
 
-    IF @subtotal IS NULL OR @subtotal < 0
-        SET @errores += '- El subtotal modificado no puede ser nulo ni negativo.' + CHAR(10);
+    IF @precioUnitario IS NULL OR @precioUnitario < 0
+        SET @errores += '- El precio unitario modificado no puede ser nulo ni negativo.' + CHAR(10);
 
     IF @errores <> ''
     BEGIN
@@ -2068,7 +2079,7 @@ BEGIN
     SET idVenta = @idVenta,
         idEntrada = @idEntrada,
         cantidad = @cantidad,
-        precio = @subtotal
+        precio = @precioUnitario
     WHERE idDetalleVenta = @idDetalleVenta;
 END;
 GO

@@ -13,9 +13,8 @@
 
 USE ParquesNacionales;
 GO
-
 -- ========================================================================
--- 1. PROCESO: CANCELACIÓN ANTICIPADA / RESVISIÓN DE CONTRATO
+-- 1. PROCESO: CANCELACIÓN ANTICIPADA / RESCISIÓN DE CONTRATO
 -- ========================================================================
 CREATE OR ALTER PROCEDURE Concesiones.sp_CancelarConcesion
     @idConcesion INT
@@ -51,8 +50,11 @@ GO
 -- 2. PROCESO: REGISTRO INTELIGENTE DE PAGO DE CÁNONES
 -- ========================================================================
 CREATE OR ALTER PROCEDURE Concesiones.sp_RegistrarPagoCanonNegocio
-    @idConcesion INT,
-    @monto       DECIMAL(12,2)
+    @idConcesion      INT,
+    @monto            DECIMAL(12,2),
+    @fechaPago        DATE = NULL,        
+    @fechaEmision     DATE = NULL,
+    @fechaVencimiento DATE = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -61,21 +63,28 @@ BEGIN
     DECLARE @estadoContrato VARCHAR(20);
     SELECT @estadoContrato = estado FROM Concesiones.Concesion WHERE idConcesion = @idConcesion;
 
-    -- Regla de Negocio: No se puede cobrar canon a un contrato dado de baja o cancelado
-    IF @estadoContrato = 'Cancelada'
+    
+    IF @estadoContrato IN ('Cancelada', 'Vencida')
     BEGIN
-        RAISERROR('- Error de Negocio: Operación rechazada. No se pueden registrar pagos de cánones en un contrato comercial que se encuentra Cancelado.', 16, 1);
+        DECLARE @msgError VARCHAR(250) = '- Error de Negocio: Operación rechazada. No se pueden registrar pagos de cánones en un contrato comercial en estado: ' + @estadoContrato + '.';
+        RAISERROR(@msgError, 16, 1);
         RETURN;
     END
 
+    -- Asignación de temporales dinámicas si el usuario no las envía explicitamente
+    SET @fechaPago = COALESCE(@fechaPago, CAST(GETDATE() AS DATE));
+    SET @fechaEmision = COALESCE(@fechaEmision, CAST(GETDATE() AS DATE));
+    SET @fechaVencimiento = COALESCE(@fechaVencimiento, DATEADD(DAY, 10, CAST(GETDATE() AS DATE)));
+
     BEGIN TRANSACTION;
     BEGIN TRY
+        -- Consumimos el ABM seguro
         EXEC Concesiones.sp_AltaPagoCanon
             @idConcesion = @idConcesion,
-            @fechaPago = '2026-06-18', -- Fecha del día del coloquio (2026)
+            @fechaPago = @fechaPago,
             @monto = @monto,
-            @fechaVencimiento = '2026-07-10',
-            @fechaEmision = '2026-06-18';
+            @fechaVencimiento = @fechaVencimiento,
+            @fechaEmision = @fechaEmision;
 
         COMMIT TRANSACTION;
         PRINT 'Pago de canon registrado y asociado al contrato correctamente.';
