@@ -49,3 +49,5 @@ CREATE SCHEMA Personal;         -- Guardaparques
 GO
 CREATE SCHEMA Importacion       -- Importacion de datos
 GO
+CREATE SCHEMA Reportes
+GO
