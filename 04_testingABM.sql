@@ -2641,3 +2641,322 @@ BEGIN CATCH
 END CATCH;
 ROLLBACK TRANSACTION;
 GO
+
+-- ===============================================================
+-- CASOS EXITOSOS - HABILITACION (ALTA --> MODIFICACION -- > BAJA)
+-- ===============================================================
+ BEGIN TRANSACTION
+
+    DECLARE @idHabilitacionTest INT;
+
+    --1. test alta exitosa
+    EXEC Guias.sp_AltaHabilitacion 
+        @nombre = 'Guía Provincial de Pesca', 
+        @fechaEmision = '2026-01-01', 
+        @fechaVencimiento = '2028-01-01';
+
+    SELECT @idHabilitacionTest = idHabilitacion 
+    FROM Guias.Habilitacion WHERE nombre = 'Guía Provincial de Pesca';
+
+    PRINT '     [EVIDENCIA] Registro insertado en la tabla:';
+    SELECT * FROM Guias.Habilitacion WHERE idHabilitacion = @idHabilitacionTest;
+
+    --2.test modificacion exitosa
+    EXEC Guias.sp_ModificacionHabilitacion 
+    @idHabilitacion = @idHabilitacionTest, 
+    @nombre = 'Guía Provincial de Pesca - Modificado', 
+    @fechaEmision = '2026-01-01', 
+    @fechaVencimiento = '2029-01-01';
+
+    PRINT '     [EVIDENCIA] Registro modificado en la tabla:';
+    SELECT * FROM Guias.Habilitacion WHERE idHabilitacion = @idHabilitacionTest;
+
+    --3.test Baja exitosa
+
+    EXEC Guias.sp_BajaHabilitacion
+    @idHabilitacion = @idHabilitacionTest;
+
+    PRINT '     [EVIDENCIA] Registro eliminado (debe devolver 0 filas):';
+    SELECT * FROM Guias.Habilitacion WHERE idHabilitacion = @idHabilitacionTest;
+
+ROLLBACK TRANSACTION;
+GO
+
+-- ==========================================================================
+-- CASOS ERRORES CONTROLADOS - HABILITACION (ALTA --> MODIFICACION -- > BAJA)
+-- ==========================================================================
+----------------------ALTA----------------------------
+USE ParquesNacionales;
+GO
+
+BEGIN TRANSACTION
+BEGIN TRY
+        EXEC Guias.sp_AltaHabilitacion 
+        @nombre = '', 
+        @fechaEmision = '2026-05-20', 
+        @fechaVencimiento = '2025-05-20';
+END TRY
+BEGIN CATCH
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+-----------------------------Modificacion-------------
+USE ParquesNacionales;
+GO
+
+BEGIN TRANSACTION
+BEGIN TRY
+        EXEC Guias.sp_ModificacionHabilitacion 
+        @idHabilitacion = -5, 
+        @nombre = 'Invalido', 
+        @fechaEmision = NULL, 
+        @fechaVencimiento = NULL;
+END TRY
+BEGIN CATCH
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+
+USE ParquesNacionales;
+GO
+--------------------BAJA---------------
+BEGIN TRANSACTION
+BEGIN TRY
+
+        EXEC Guias.sp_BajaHabilitacion 
+        @idHabilitacion = 7777777;
+END TRY
+BEGIN CATCH
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+
+----------------- BAJA - con guias asociados-------------------------------
+BEGIN TRANSACTION
+BEGIN TRY
+        DECLARE @idHabBloqueada INT;
+        DECLARE @idGuiaBloq     INT;
+
+        INSERT INTO Guias.Habilitacion(nombre, fechaEmision, fechaVencimiento)
+        VALUES ('TEST_Hab', '2024-01-01', '2030-01-01');
+        SET @idHabBloqueada = SCOPE_IDENTITY();
+
+        INSERT INTO Guias.Guia (nombre, apellido, fechaNacimiento, tipoDocumento, nroDocumento, email, vigenciaAutorizacion)
+        VALUES ('TEST', 'TEST', '1990-01-01', 'DNI', '11111111', 'bloq@test.com', '2030-01-01');
+        SET @idGuiaBloq = SCOPE_IDENTITY();
+
+        INSERT INTO Guias.GuiaHabilitacion(idGuia,idHabilitacion)
+        VALUES (@idGuiaBloq, @idHabBloqueada)
+
+
+        EXEC Guias.sp_BajaHabilitacion 
+        @idHabilitacion = @idHabBloqueada;
+END TRY
+BEGIN CATCH
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+-- ==========================================================================
+-- CASOS EXISTOSOS: - GuiaHabilitacion (ALTA-- > BAJA)
+-- ==========================================================================
+
+USE ParquesNacionales
+GO
+
+BEGIN TRANSACTION
+
+    DECLARE @idHabilitacionTEST INT;
+    DECLARE @idGuiaTEST         INT;
+
+    INSERT INTO Guias.Habilitacion(nombre, fechaEmision, fechaVencimiento)
+    VALUES ('TEST_Habilitacion', '2024-01-01', '2030-01-01');
+    SET @idHabilitacionTEST = SCOPE_IDENTITY();
+
+    INSERT INTO Guias.Guia (nombre, apellido, fechaNacimiento, tipoDocumento, nroDocumento, email, vigenciaAutorizacion)
+    VALUES ('TEST_Nombre', 'TEST_Apellido', '1990-01-01', 'DNI', '11111111', 'test@test.com', '2030-01-01');
+    SET @idGuiaTEST = SCOPE_IDENTITY();
+
+    --1. test alta exitosa
+    EXEC Guias.sp_AltaGuiaHabilitacion
+        @idGuia = @idGuiaTEST,
+        @idHabilitacion = @idHabilitacionTEST;
+
+     PRINT '[EVIDENCIA] Relacion Insertada:';
+    SELECT *
+    FROM Guias.GuiaHabilitacion 
+    WHERE idGuia = @idGuiaTEST AND idHabilitacion = @idHabilitacionTEST;
+
+    --2.test Baja exitosa
+
+    EXEC Guias.sp_BajaGuiaHabilitacion
+        @idHabilitacion = @idHabilitacionTEST,
+        @idGuia = @idGuiaTEST;
+
+    PRINT '[EVIDENCIA] Relacion eliminada (debe devolver 0 filas):';
+    SELECT * FROM Guias.GuiaHabilitacion 
+    WHERE idHabilitacion = @idHabilitacionTEST AND idGuia = @idGuiaTEST;
+
+ROLLBACK TRANSACTION;
+GO
+
+-- ==========================================================================
+-- CASOS ERRORES CONTROLADOS: - GuiaHabilitacion (ALTA-- > BAJA)
+-- ==========================================================================
+----------------------ALTA----------------------------
+USE ParquesNacionales;
+GO
+--ids inexistentes
+BEGIN TRANSACTION
+BEGIN TRY
+        EXEC Guias.sp_AltaGuiaHabilitacion 
+        @idGuia = -1, 
+        @idHabilitacion = -1;
+END TRY
+BEGIN CATCH
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+--- id duplicados
+BEGIN TRANSACTION
+BEGIN TRY
+    DECLARE @idGuiaDup         INT;
+    DECLARE @idHabilitacionDup INT;
+    
+    INSERT INTO Guias.Guia (nombre, apellido, fechaNacimiento, tipoDocumento, nroDocumento, email, vigenciaAutorizacion)
+    VALUES ('TEST_Nombre', 'TEST_Apellido', '1990-01-01', 'DNI', '40111222', 'dup@guia.com', '2030-01-01');
+    SET @idGuiaDup = SCOPE_IDENTITY();
+
+    INSERT INTO Guias.Habilitacion (nombre, fechaEmision, fechaVencimiento)
+    VALUES ('TEST_Habilitacion', '2024-01-01', '2030-01-01');
+    SET @idHabilitacionDup = SCOPE_IDENTITY();
+
+    EXEC Guias.sp_AltaGuiaHabilitacion
+        @idHabilitacion = @idHabilitacionDup,
+        @idGuia = @idGuiaDup;
+    
+    --debe fallar porque esta duplicado
+    EXEC Guias.sp_AltaGuiaHabilitacion
+        @idHabilitacion = @idHabilitacionDup,
+        @idGuia = @idGuiaDup;
+END TRY
+BEGIN CATCH
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+--------------------BAJA---------------
+BEGIN TRANSACTION
+BEGIN TRY
+
+        EXEC Guias.sp_BajaGuiaHabilitacion 
+        @idHabilitacion = -1,
+        @idGuia = -1;
+END TRY
+BEGIN CATCH
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+
+
+-- ==========================================================================
+-- CASOS EXITOSOS: - Titulo (ALTA--> MODIFICAR --> BAJA)
+-- ==========================================================================
+
+ BEGIN TRANSACTION
+
+    DECLARE @idTituloTest INT;
+
+    --1. test alta exitosa
+    EXEC Guias.sp_AltaTitulo
+        @nombre = 'Tecnico Superior en Trekking', 
+        @fechaEmision = '2018-06-15';
+
+    SELECT @idTituloTest = idTitulo 
+    FROM Guias.Titulo WHERE nombre = 'Tecnico Superior en Trekking';
+
+    PRINT '     [EVIDENCIA] Registro insertado en la tabla:';
+    SELECT * FROM Guias.Titulo WHERE idTitulo = @idTituloTest;
+
+    --2.test modificacion exitosa
+    EXEC Guias.sp_ModificacionTitulo 
+        @idTitulo = @idTituloTest, 
+        @nombre = 'Tecnico Superior en Trekking - Modificado', 
+        @fechaEmision = '2018-06-15';
+
+    PRINT '     [EVIDENCIA] Registro modificado en la tabla:';
+    SELECT * FROM Guias.Titulo WHERE idTitulo = @idTituloTest;
+
+    --3.test Baja exitosa
+
+    EXEC Guias.sp_BajaTitulo
+    @idTitulo = @idTituloTest;
+
+    PRINT '     [EVIDENCIA] Registro eliminado (debe devolver 0 filas):';
+    SELECT * FROM Guias.Titulo WHERE idTitulo = @idTituloTest;
+
+ROLLBACK TRANSACTION;
+GO
+
+
+-- ==========================================================================
+-- CASOS ERRORES CONTROLADOS: - Titulo (ALTA--> MODIFICAR --> BAJA)
+-- ==========================================================================
+
+----------------------ALTA----------------------------
+USE ParquesNacionales;
+GO
+
+BEGIN TRANSACTION
+BEGIN TRY
+        EXEC Guias.sp_AltaTitulo 
+        @nombre = '', 
+        @fechaEmision = 'NULL';
+END TRY
+BEGIN CATCH
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+
+-----duplicado
+BEGIN TRANSACTION
+BEGIN TRY
+
+    INSERT INTO Guias.Titulo (nombre, fechaEmision)
+    VALUES ('Tecnico Superior en Trekking','2018-06-15');
+
+    EXEC Guias.sp_AltaGuia
+        @nombre='Tecnico Superior en Trekking',
+        @fechaEmision='2018-06-15';
+END TRY
+BEGIN CATCH
+
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+-----------------------------Modificacion-------------
