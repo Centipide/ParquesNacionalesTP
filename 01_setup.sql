@@ -47,3 +47,5 @@ CREATE SCHEMA Ventas;           -- Entradas, visitantes y ventas
 GO
 CREATE SCHEMA Personal;         -- Guardaparques
 GO
+CREATE SCHEMA Importacion       -- Importacion de datos
+GO
