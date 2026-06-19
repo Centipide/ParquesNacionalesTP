@@ -2948,3 +2948,173 @@ END CATCH;
 ROLLBACK TRANSACTION;
 GO
 -----------------------------Modificacion-------------
+USE ParquesNacionales;
+GO
+
+BEGIN TRANSACTION
+BEGIN TRY
+        EXEC Guias.sp_ModificacionTitulo 
+        @nombre = '', 
+        @fechaEmision = 'NULL';
+END TRY
+BEGIN CATCH
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+
+-----------------------Baja--------------------------
+BEGIN TRANSACTION
+BEGIN TRY
+
+        EXEC Guias.sp_BajaTitulo 
+        @idTitulo = 7777777;
+END TRY
+BEGIN CATCH
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+
+----------------- BAJA - con guias asociados-------------------------------
+BEGIN TRANSACTION
+BEGIN TRY
+        DECLARE @idTituloBloqueada INT;
+        DECLARE @idGuiaBloq     INT;
+
+        INSERT INTO Guias.Titulo(nombre, fechaEmision)
+        VALUES ('TEST_Titulo', '2024-01-01');
+        SET @idTituloBloqueada = SCOPE_IDENTITY();
+
+        INSERT INTO Guias.Guia (nombre, apellido, fechaNacimiento, tipoDocumento, nroDocumento, email, vigenciaAutorizacion)
+        VALUES ('TEST_Nombre', 'TEST_Apellido', '1990-01-01', 'DNI', '11111111', 'bloq@test.com', '2030-01-01');
+        SET @idGuiaBloq = SCOPE_IDENTITY();
+
+        INSERT INTO Guias.GuiaTitulo(idGuia,idTitulo)
+        VALUES (@idGuiaBloq, @idTituloBloqueada)
+
+
+        EXEC Guias.sp_BajaTitulo 
+        @idTitulo = @idTituloBloqueada;
+END TRY
+BEGIN CATCH
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+
+-- ==========================================================================
+-- CASOS EXITOSOS: - GuiaTitulo (ALTA--> BAJA)
+-- ==========================================================================
+USE ParquesNacionales
+GO
+
+BEGIN TRANSACTION
+
+    DECLARE @idTituloTEST       INT;
+    DECLARE @idGuiaTEST         INT;
+
+    INSERT INTO Guias.Titulo(nombre, fechaEmision)
+    VALUES ('TEST_Habilitacion', '2024-01-01');
+    SET @idTituloTEST = SCOPE_IDENTITY();
+
+    INSERT INTO Guias.Guia (nombre, apellido, fechaNacimiento, tipoDocumento, nroDocumento, email, vigenciaAutorizacion)
+    VALUES ('TEST_Nombre', 'TEST_Apellido', '1990-01-01', 'DNI', '11111111', 'test@test.com', '2030-01-01');
+    SET @idGuiaTEST = SCOPE_IDENTITY();
+
+    --1. test alta exitosa
+    EXEC Guias.sp_AltaGuiaTitulo
+        @idGuia = @idGuiaTEST,
+        @idTitulo = @idTituloTEST;
+
+     PRINT '[EVIDENCIA] Relacion Insertada:';
+    SELECT *
+    FROM Guias.GuiaTitulo 
+    WHERE idGuia = @idGuiaTEST AND idTitulo = @idTituloTEST;
+
+    --2.test Baja exitosa
+
+    EXEC Guias.sp_BajaGuiaTitulo
+        @idTitulo = @idTituloTEST,
+        @idGuia = @idGuiaTEST;
+
+    PRINT '[EVIDENCIA] Relacion eliminada (debe devolver 0 filas):';
+    SELECT * FROM Guias.GuiaTitulo 
+    WHERE idTitulo = @idTituloTEST AND idGuia = @idGuiaTEST;
+
+ROLLBACK TRANSACTION;
+GO
+
+
+-- ==========================================================================
+-- CASOS ERRORES CONTROLADOS: - GuiaTitulo (ALTA--> BAJA)
+-- ==========================================================================
+
+----------------------ALTA----------------------------
+USE ParquesNacionales;
+GO
+--ids inexistentes
+BEGIN TRANSACTION
+BEGIN TRY
+        EXEC Guias.sp_AltaGuiaTitulo 
+        @idGuia = -1, 
+        @idTitulo = -1;
+END TRY
+BEGIN CATCH
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+--- id duplicados
+BEGIN TRANSACTION
+BEGIN TRY
+    DECLARE @idGuiaDup         INT;
+    DECLARE @idTituloDup       INT;
+    
+    INSERT INTO Guias.Guia (nombre, apellido, fechaNacimiento, tipoDocumento, nroDocumento, email, vigenciaAutorizacion)
+    VALUES ('TEST_Nombre', 'TEST_Apellido', '1990-01-01', 'DNI', '40111222', 'dup@guia.com', '2030-01-01');
+    SET @idGuiaDup = SCOPE_IDENTITY();
+
+    INSERT INTO Guias.Titulo (nombre, fechaEmision)
+    VALUES ('TEST_Habilitacion', '2024-01-01');
+    SET @idTituloDup = SCOPE_IDENTITY();
+
+    EXEC Guias.sp_AltaGuiaTitulo
+        @idTitulo = @idTituloDup,
+        @idGuia = @idGuiaDup;
+    
+    --debe fallar porque esta duplicado
+    EXEC Guias.sp_AltaGuiaTitulo
+        @idTitulo = @idTituloDup,
+        @idGuia = @idGuiaDup;
+END TRY
+BEGIN CATCH
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+--------------------BAJA---------------
+BEGIN TRANSACTION
+BEGIN TRY
+
+        EXEC Guias.sp_BajaGuiaTitulo 
+        @idTitulo = -1,
+        @idGuia = -1;
+END TRY
+BEGIN CATCH
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
