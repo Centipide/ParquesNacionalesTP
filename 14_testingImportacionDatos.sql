@@ -1,4 +1,16 @@
 -- ============================================================
+-- TESTING Parques y TiposParque
+-- ============================================================
+
+EXEC Importacion.sp_ImportarParques
+    @rutaArchivo = 'C:\Datasets\af_ha007__rea_protegida_argentina_geojson.txt'
+
+SELECT * FROM Importacion.AreasProtegidas
+SELECT * FROM Parques.TipoParque
+SELECT * FROM Parques.Parque
+
+
+-- ============================================================
 -- TESTING Visitas segun tipo visitante
 -- ============================================================
 USE ParquesNacionales
