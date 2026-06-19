@@ -1636,3 +1636,168 @@ BEGIN CATCH
 END CATCH;
 ROLLBACK TRANSACTION;
 GO
+
+
+--===============================================================================
+-- CASOS EXITOSOS: GUIA (ALTA --> MODIFICACION --> BAJA)
+--===============================================================================
+
+USE ParquesNacionales;
+GO
+
+BEGIN TRANSACTION
+
+    DECLARE @idGuiaTest INT;
+
+    -- Alta exitosa
+
+    EXEC Guias.sp_AltaGuia
+        @nombre='TEST_Joaquin',
+        @apellido='TEST_Martinez',
+        @fechaNacimiento='1998-05-10',
+        @tipoDocumento='DNI',
+        @nroDocumento='40111222',
+        @email='test@guia.com',
+        @vigenciaAutorizacion='2030-01-01';
+
+    SELECT @idGuiaTest=idGuia
+    FROM Guias.Guia
+    WHERE email='test@guia.com';
+
+     -- Deberia devolver una fila creada y activa
+    PRINT ' [EVIDENCIA] Registro insertado en la tabla:';
+    SELECT * 
+    FROM Guias.Guia
+    WHERE idGuia=@idGuiaTest AND estaActivo = 1;
+
+
+    -- Modificacion exitosa
+
+    EXEC Guias.sp_ModificacionGuia
+        @idGuia=@idGuiaTest,
+        @nombre='TEST_Modificado',
+        @apellido='Martinez',
+        @fechaNacimiento='1998-05-10',
+        @tipoDocumento='DNI',
+        @nroDocumento='40111222',
+        @email='nuevo@guia.com',
+        @vigenciaAutorizacion='2031-01-01';
+
+    -- Deberia devolver datos modificados
+
+    PRINT '     [EVIDENCIA] Registro modificado en la tabla:';
+    SELECT *
+    FROM Guias.Guia
+    WHERE idGuia=@idGuiaTest;
+
+
+    -- Baja logica
+
+    EXEC Guias.sp_BajaGuia
+        @idGuia=@idGuiaTest;
+
+    -- Deberia devolver 0 filas
+    PRINT '     [EVIDENCIA] Registro tras la baja lógica (estaActivo debe ser 0):';
+    SELECT *
+    FROM Guias.Guia
+    WHERE idGuia=@idGuiaTest AND estaActivo = 0;
+
+ROLLBACK TRANSACTION;
+GO
+
+-- ============================================================
+-- CASOS FALLIDOS - Guia (ALTA --> MODIFICACION -- > BAJA)
+-- ============================================================
+
+----------------------------------ALTA-------------------------------------
+USE ParquesNacionales;
+GO
+
+BEGIN TRANSACTION
+BEGIN TRY
+    EXEC Guias.sp_AltaGuia
+        @nombre='',
+        @apellido='',
+        @fechaNacimiento=NULL,
+        @tipoDocumento='DNI',
+        @nroDocumento='12345678',
+        @email='',
+        @vigenciaAutorizacion='2020-01-01';
+END TRY
+BEGIN CATCH
+
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+
+    --TEST DUPLICADOS
+BEGIN TRANSACTION
+BEGIN TRY
+
+    INSERT INTO Guias.Guia (nombre, apellido, fechaNacimiento, tipoDocumento, nroDocumento, email, vigenciaAutorizacion)
+    VALUES ('Base', 'Base', '1990-01-01', 'DNI', '40111222', 'base@guia.com', '2030-01-01');
+
+    EXEC Guias.sp_AltaGuia
+        @nombre='Esteban',
+        @apellido='Quito',
+        @fechaNacimiento='1992-04-10',
+        @tipoDocumento='DNI',
+        @nroDocumento='40111222',
+        @email='esteban.quito@turismo.com',
+        @vigenciaAutorizacion='2030-01-01';
+END TRY
+BEGIN CATCH
+
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+--------------------MODIFICACION---------------------------------
+
+USE ParquesNacionales;
+GO
+
+BEGIN TRANSACTION
+BEGIN TRY
+    EXEC Guias.sp_ModificacionGuia
+        @idGuia = -99,                                       -- Error: No existe
+        @nombre = 'Esteban', 
+        @apellido = 'Quito', 
+        @fechaNacimiento = '1992-04-10', 
+        @tipoDocumento = 'DNI', 
+        @nroDocumento = '40111222', 
+        @email = 'esteban.quito@turismo.com', 
+        @vigenciaAutorizacion = '2015-01-01';              -- Error: Fecha vencida
+END TRY
+BEGIN CATCH
+
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO
+
+----------------------BAJA---------------------------------------
+
+USE ParquesNacionales;
+GO
+
+BEGIN TRANSACTION
+BEGIN TRY
+    EXEC Guias.sp_BajaGuia
+        @idGuia = 999999;
+END TRY
+BEGIN CATCH
+
+    SELECT value AS Error
+    FROM STRING_SPLIT(ERROR_MESSAGE(), CHAR(10))
+    WHERE value <> '';
+END CATCH;
+ROLLBACK TRANSACTION;
+GO

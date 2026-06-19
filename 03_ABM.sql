@@ -1196,8 +1196,8 @@ CREATE OR ALTER PROCEDURE Guias.sp_AltaGuia
     @tipoDocumento        VARCHAR(20),
     @nroDocumento         VARCHAR(20),
     @email                VARCHAR(150),
-    @vigenciaAutorizacion DATE,
-    @estaActivo           BIT
+    @vigenciaAutorizacion DATE
+
 
 AS
 BEGIN
@@ -1210,7 +1210,7 @@ BEGIN
         SET @errores += 'El nombre no puede estar vacio.' + CHAR(10)
     
     -- Validacion APELLIDO
-    IF @apellido IS NULL OR LTRIM(RTRIM(@nombre)) = ''
+    IF @apellido IS NULL OR LTRIM(RTRIM(@apellido)) = ''
         SET @errores += 'El apellido no puede estar vacio.' + CHAR(10)
     
     -- Validacion FECHA NACIMIENTO
@@ -1261,8 +1261,7 @@ CREATE OR ALTER PROCEDURE Guias.sp_ModificacionGuia
     @tipoDocumento        VARCHAR(20),
     @nroDocumento         VARCHAR(20),
     @email                VARCHAR(150),
-    @vigenciaAutorizacion DATE,
-    @estaActivo           BIT
+    @vigenciaAutorizacion DATE
 
 AS
 BEGIN
@@ -1313,6 +1312,7 @@ BEGIN
         nroDocumento=@nroDocumento,
         email=@email,
         vigenciaAutorizacion=@vigenciaAutorizacion
+
     WHERE idGuia=@idGuia;
 END
 GO
@@ -1592,7 +1592,7 @@ BEGIN
         RETURN
     END
 
-    INSERT INTO Guias.Habilitacion (nombre,fechaEmision)
+    INSERT INTO Guias.Titulo (nombre,fechaEmision)
     VALUES(@nombre, @fechaEmision)
 
     SELECT SCOPE_IDENTITY() AS idTituloNuevo
@@ -1627,8 +1627,8 @@ BEGIN
 
     IF EXISTS(
         SELECT 1
-        FROM GUias.Titulo
-        WHERE nombre = @nombre AND fechaEmision = @fechaEmision AND idTitulo = @idTitulo
+        FROM Guias.Titulo
+        WHERE nombre = @nombre AND fechaEmision = @fechaEmision AND idTitulo != @idTitulo
     )
         SET @errores += 'Ya existe este titulo con estos datos.' + CHAR(10)
 
