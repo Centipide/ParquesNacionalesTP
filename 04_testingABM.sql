@@ -1719,8 +1719,8 @@ BEGIN TRY
     INSERT INTO Parques.TipoParque (nombre, descripcion) VALUES ('TEST_Reserva', 'Reserva de pruebas');
     SET @idTipoParque = SCOPE_IDENTITY();
 
-    INSERT INTO Parques.Parque (idTipoParque, nombre, localidad, provincia, superficie)
-    VALUES (@idTipoParque, 'TEST_Parque Meteorito', 'Localidad Test', 'Provincia Test', 5500.50);
+    INSERT INTO Parques.Parque (idTipoParque, nombre, region, provincia, superficie)
+    VALUES (@idTipoParque, 'TEST_Parque Meteorito', 'region Test', 'Provincia Test', 5500.50);
     SET @idParque = SCOPE_IDENTITY();
 
     INSERT INTO Concesiones.EmpresaConcesionaria (cuit, razonSocial, contacto)
@@ -1817,8 +1817,8 @@ BEGIN TRY
     INSERT INTO Parques.TipoParque (nombre, descripcion) VALUES ('TEST_ReservaPago', 'Pruebas Pago');
     SET @idTipoParque = SCOPE_IDENTITY();
 
-    INSERT INTO Parques.Parque (idTipoParque, nombre, localidad, provincia, superficie)
-    VALUES (@idTipoParque, 'TEST_Parque Financiero', 'Localidad F', 'Provincia F', 2300.00);
+    INSERT INTO Parques.Parque (idTipoParque, nombre, region, provincia, superficie)
+    VALUES (@idTipoParque, 'TEST_Parque Financiero', 'region F', 'Provincia F', 2300.00);
     SET @idParque = SCOPE_IDENTITY();
 
     INSERT INTO Concesiones.EmpresaConcesionaria (cuit, razonSocial, contacto)
@@ -1989,7 +1989,7 @@ BEGIN TRY
     INSERT INTO Parques.TipoParque (nombre) VALUES ('TEST_Bloqueo');
     SET @idTipoParque = SCOPE_IDENTITY();
     
-    INSERT INTO Parques.Parque (idTipoParque, nombre, localidad, provincia, superficie) 
+    INSERT INTO Parques.Parque (idTipoParque, nombre, region, provincia, superficie) 
     VALUES (@idTipoParque, 'Parque de Test Bloqueo', 'L', 'P', 100);
     SET @idParque = SCOPE_IDENTITY();
     
@@ -2219,8 +2219,8 @@ BEGIN TRY
     INSERT INTO Parques.TipoParque (nombre) VALUES ('TEST_VentasEnt');
     SET @idTipoParque = SCOPE_IDENTITY();
 
-    INSERT INTO Parques.Parque (idTipoParque, nombre, localidad, provincia, superficie)
-    VALUES (@idTipoParque, 'TEST_Parque Costero', 'Localidad E', 'Provincia E', 1200.00);
+    INSERT INTO Parques.Parque (idTipoParque, nombre, region, provincia, superficie)
+    VALUES (@idTipoParque, 'TEST_Parque Costero', 'region E', 'Provincia E', 1200.00);
     SET @idParque = SCOPE_IDENTITY();
 
     INSERT INTO Ventas.TipoVisitante (nombre, descripcion)
@@ -2277,7 +2277,7 @@ END CATCH;
 BEGIN TRY
     DECLARE @idPK INT, @idTV INT;
     INSERT INTO Parques.TipoParque (nombre) VALUES ('T1');
-    INSERT INTO Parques.Parque (idTipoParque, nombre, localidad, provincia, superficie) VALUES (SCOPE_IDENTITY(), 'P1', 'L', 'P', 10);
+    INSERT INTO Parques.Parque (idTipoParque, nombre, region, provincia, superficie) VALUES (SCOPE_IDENTITY(), 'P1', 'L', 'P', 10);
     SET @idPK = SCOPE_IDENTITY();
     INSERT INTO Ventas.TipoVisitante (nombre) VALUES ('V1');
     SET @idTV = SCOPE_IDENTITY();
@@ -2390,8 +2390,8 @@ BEGIN TRY
     INSERT INTO Parques.TipoParque (nombre) VALUES ('TEST_DetVenta');
     SET @idTypeP = SCOPE_IDENTITY();
 
-    INSERT INTO Parques.Parque (idTipoParque, nombre, localidad, provincia, superficie)
-    VALUES (@idTypeP, 'TEST_Parque Detalle', 'Localidad D', 'Provincia D', 900.00);
+    INSERT INTO Parques.Parque (idTipoParque, nombre, region, provincia, superficie)
+    VALUES (@idTypeP, 'TEST_Parque Detalle', 'region D', 'Provincia D', 900.00);
     SET @idPark = SCOPE_IDENTITY();
 
     INSERT INTO Ventas.TipoVisitante (nombre) VALUES ('TEST_Turista');

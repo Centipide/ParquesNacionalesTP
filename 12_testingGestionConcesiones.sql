@@ -26,7 +26,7 @@ BEGIN TRY
     INSERT INTO Parques.TipoParque (nombre) VALUES ('TEST_NegFlujo');
     SET @idTipoParque = SCOPE_IDENTITY();
     
-    INSERT INTO Parques.Parque (idTipoParque, nombre, localidad, provincia, superficie) 
+    INSERT INTO Parques.Parque (idTipoParque, nombre, region, provincia, superficie) 
     VALUES (@idTipoParque, 'Parque Negocio Ok', 'L', 'P', 500);
     SET @idParque = SCOPE_IDENTITY();
     
@@ -69,7 +69,7 @@ BEGIN TRY
 
     INSERT INTO Parques.TipoParque (nombre) VALUES ('TEST_NegErr');
     set @idTipoParque = SCOPE_IDENTITY();
-    INSERT INTO Parques.Parque (idTipoParque, nombre, localidad, provincia, superficie) VALUES (@idTipoParque, 'P', 'L', 'P', 100);
+    INSERT INTO Parques.Parque (idTipoParque, nombre, region, provincia, superficie) VALUES (@idTipoParque, 'P', 'L', 'P', 100);
     set @idParque = SCOPE_IDENTITY();
     INSERT INTO Concesiones.EmpresaConcesionaria (cuit, razonSocial) VALUES ('30999999952', 'Parador Inactivo S.A.');
     set @idEmpresa = SCOPE_IDENTITY();
