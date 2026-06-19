@@ -302,18 +302,20 @@ CREATE TABLE Ventas.Visitante (
 GO
 
 CREATE TABLE Ventas.Venta (
-    idVenta      INT           IDENTITY(1,1),
-    idVisitante  INT           NOT NULL,
-    fechaHora    DATETIME      NOT NULL DEFAULT GETDATE(),
-    formaPago    VARCHAR(50)   NOT NULL,
-    puntoVenta   VARCHAR(100)  NOT NULL,
-    total        DECIMAL(12,2) NOT NULL DEFAULT 0,
+    idVenta     INT          IDENTITY(1,1),
+    idVisitante INT          NOT NULL,
+    fechaHora   DATETIME     NOT NULL DEFAULT GETDATE(),
+    formaPago   VARCHAR(50)  NOT NULL,
+    puntoVenta  VARCHAR(50)  NOT NULL,
+    total       DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    estado      VARCHAR(20)  NOT NULL DEFAULT 'Completada',
 
     CONSTRAINT PK_Venta PRIMARY KEY (idVenta),
     CONSTRAINT FK_Venta_Visitante FOREIGN KEY (idVisitante)
         REFERENCES Ventas.Visitante (idVisitante),
     CONSTRAINT CK_Venta_Total CHECK (total >= 0),
-    CONSTRAINT CK_Venta_FormaPago CHECK (formaPago IN ('Efectivo','Tarjeta','Transferencia','Digital'))
+    CONSTRAINT CK_Venta_FormaPago CHECK (formaPago IN ('Efectivo', 'Tarjeta', 'Transferencia', 'Digital')),
+    CONSTRAINT CK_Venta_Estado CHECK (estado IN ('Completada', 'Anulada'))
 );
 GO
 
@@ -321,8 +323,6 @@ CREATE TABLE Ventas.Entrada (
     idEntrada       INT           IDENTITY(1,1),
     idParque        INT           NOT NULL,
     idTipoVisitante INT           NOT NULL,
-    fechaAcceso     DATE          NOT NULL,
-    parqueVisitado  VARCHAR(150)  NOT NULL,
     precio          DECIMAL(10,2) NOT NULL,
 
     CONSTRAINT PK_Entrada PRIMARY KEY (idEntrada),
@@ -330,7 +330,9 @@ CREATE TABLE Ventas.Entrada (
         REFERENCES Parques.Parque (idParque),
     CONSTRAINT FK_Entrada_TipoVisitante FOREIGN KEY (idTipoVisitante)
         REFERENCES Ventas.TipoVisitante (idTipoVisitante),
-    CONSTRAINT CK_Entrada_Precio CHECK (precio >= 0)
+    CONSTRAINT CK_Entrada_Precio CHECK (precio >= 0),
+    
+    CONSTRAINT UQ_Entrada_Parque_TipoVisitante UNIQUE (idParque, idTipoVisitante)
 );
 GO
 
@@ -340,6 +342,7 @@ CREATE TABLE Ventas.DetalleVenta (
     idEntrada      INT           NOT NULL,
     cantidad       INT           NOT NULL,
     precio         DECIMAL(10,2) NOT NULL,
+    fechaAcceso    DATE          NOT NULL,
     total          AS (cantidad * precio) PERSISTED,
 
     CONSTRAINT PK_DetalleVenta PRIMARY KEY (idDetalleVenta),

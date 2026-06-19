@@ -1783,19 +1783,15 @@ BEGIN
     SET NOCOUNT ON;
     DECLARE @errores VARCHAR(1000) = '';
 
-    -- Validación 1: CUIT obligatorio, no vacío y longitud exacta
-    IF @cuit IS NULL OR LEN(LTRIM(RTRIM(@cuit))) <> 11
-        SET @errores += '- El CUIT es obligatorio y debe contener exactamente 11 caracteres numéricos.' + CHAR(10);
+    IF @cuit IS NULL OR LEN(LTRIM(RTRIM(@cuit))) <> 11 OR @cuit LIKE '%[^0-9]%'
+        SET @errores += '- El CUIT es obligatorio, debe contener exactamente 11 caracteres y ser numérico puro.' + CHAR(10);
     
-    -- Validación 2: Unicidad del CUIT (Evitar duplicados en el padrón)
     IF EXISTS (SELECT 1 FROM Concesiones.EmpresaConcesionaria WHERE cuit = @cuit)
         SET @errores += '- El CUIT ingresado ya se encuentra asignado a otra empresa concesionaria.' + CHAR(10);
 
-    -- Validación 3: Razón Social obligatoria y no vacía
     IF @razonSocial IS NULL OR LTRIM(RTRIM(@razonSocial)) = ''
         SET @errores += '- La razón social es un campo obligatorio y no puede quedar vacío.' + CHAR(10);
 
-    -- Evaluación del acumulador unificado de la cátedra
     IF @errores <> ''
     BEGIN
         RAISERROR(@errores, 16, 1);
@@ -1804,8 +1800,6 @@ BEGIN
 
     INSERT INTO Concesiones.EmpresaConcesionaria (cuit, razonSocial, contacto)
     VALUES (LTRIM(RTRIM(@cuit)), LTRIM(RTRIM(@razonSocial)), LTRIM(RTRIM(@contacto)));
-
-    SELECT SCOPE_IDENTITY() AS idEmpresaConcesionariaNueva;
 END;
 GO
 
@@ -1819,19 +1813,15 @@ BEGIN
     SET NOCOUNT ON;
     DECLARE @errores VARCHAR(1000) = '';
 
-    -- Validación 1: Existencia del ID maestro
     IF NOT EXISTS (SELECT 1 FROM Concesiones.EmpresaConcesionaria WHERE idEmpresaConcesionaria = @idEmpresaConcesionaria)
         SET @errores += '- El ID de la empresa concesionaria especificado no existe.' + CHAR(10);
 
-    -- Validación 2: CUIT válido
-    IF @cuit IS NULL OR LEN(LTRIM(RTRIM(@cuit))) <> 11
-        SET @errores += '- El CUIT es obligatorio y debe poseer 11 caracteres.' + CHAR(10);
+    IF @cuit IS NULL OR LEN(LTRIM(RTRIM(@cuit))) <> 11 OR @cuit LIKE '%[^0-9]%'
+        SET @errores += '- El CUIT es obligatorio, debe contener exactamente 11 caracteres y ser numérico puro.' + CHAR(10);
 
-    -- Validación 3: Evitar colisión de CUIT con OTRA empresa al modificar
     IF EXISTS (SELECT 1 FROM Concesiones.EmpresaConcesionaria WHERE cuit = @cuit AND idEmpresaConcesionaria <> @idEmpresaConcesionaria)
         SET @errores += '- El nuevo CUIT ingresado ya pertenece a otra empresa concesionaria.' + CHAR(10);
 
-    -- Validación 4: Razón Social válida
     IF @razonSocial IS NULL OR LTRIM(RTRIM(@razonSocial)) = ''
         SET @errores += '- La razón social es obligatoria.' + CHAR(10);
 
@@ -1859,7 +1849,6 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM Concesiones.EmpresaConcesionaria WHERE idEmpresaConcesionaria = @idEmpresaConcesionaria)
         SET @errores += '- El ID de la empresa a eliminar no existe.' + CHAR(10);
 
-    -- Validación crítica: No romper la integridad referencial (FK de contratos de Concesión)
     IF EXISTS (SELECT 1 FROM Concesiones.Concesion WHERE idEmpresaConcesionaria = @idEmpresaConcesionaria)
         SET @errores += '- Restricción de Integridad: No se puede eliminar la empresa porque posee contratos de concesión activos o históricos asignados.' + CHAR(10);
 
@@ -1873,5 +1862,838 @@ BEGIN
     WHERE idEmpresaConcesionaria = @idEmpresaConcesionaria;
     
     PRINT 'Empresa concesionaria eliminada correctamente.';
+END;
+GO
+
+-- ==========================================================
+-- TABLA TipoActividadConcesion
+-- ==========================================================
+
+CREATE OR ALTER PROCEDURE Concesiones.sp_AltaTipoActividadConcesion
+    @nombre               VARCHAR(100),
+    @descripcionActividad VARCHAR(200) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF @nombre IS NULL OR LTRIM(RTRIM(@nombre)) = ''
+        SET @errores += '- El nombre de la actividad de concesión es obligatorio y no puede estar vacío.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Concesiones.TipoActividadConcesion WHERE nombre = @nombre)
+        SET @errores += '- El tipo de actividad comercial ingresado ya existe en el sistema.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Concesiones.TipoActividadConcesion (nombre, descripcionActividad)
+    VALUES (LTRIM(RTRIM(@nombre)), LTRIM(RTRIM(@descripcionActividad)));
+
+    SELECT SCOPE_IDENTITY() AS idTipoActividadConcesionNueva;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Concesiones.sp_ModificacionTipoActividadConcesion
+    @idTipoActividadConcesion INT,
+    @nombre                   VARCHAR(100),
+    @descripcionActividad     VARCHAR(200) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.TipoActividadConcesion WHERE idTipoActividadConcesion = @idTipoActividadConcesion)
+        SET @errores += '- El ID del tipo de actividad de concesión especificado no existe.' + CHAR(10);
+
+    IF @nombre IS NULL OR LTRIM(RTRIM(@nombre)) = ''
+        SET @errores += '- El nombre de la actividad es un campo obligatorio.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Concesiones.TipoActividadConcesion WHERE nombre = @nombre AND idTipoActividadConcesion <> @idTipoActividadConcesion)
+        SET @errores += '- Ya existe otra actividad registrada con ese mismo nombre.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    UPDATE Concesiones.TipoActividadConcesion
+    SET nombre = LTRIM(RTRIM(@nombre)),
+        descripcionActividad = LTRIM(RTRIM(@descripcionActividad))
+    WHERE idTipoActividadConcesion = @idTipoActividadConcesion;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Concesiones.sp_EliminarTipoActividadConcesion
+    @idTipoActividadConcesion INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.TipoActividadConcesion WHERE idTipoActividadConcesion = @idTipoActividadConcesion)
+        SET @errores += '- El ID de la actividad a eliminar no existe.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Concesiones.Concesion WHERE idTipoActividadConcesion = @idTipoActividadConcesion)
+        SET @errores += '- Restricción de Integridad: No se puede eliminar el rubro comercial debido a que posee contratos de concesión asociados.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    DELETE FROM Concesiones.TipoActividadConcesion 
+    WHERE idTipoActividadConcesion = @idTipoActividadConcesion;
+    
+    PRINT 'Tipo de actividad de concesión eliminado correctamente.';
+END;
+GO
+
+-- ==========================================================
+-- TABLA Concesion
+-- ==========================================================
+
+CREATE OR ALTER PROCEDURE Concesiones.sp_AltaConcesion
+    @idEmpresaConcesionaria   INT,
+    @idTipoActividadConcesion INT,
+    @idParque                 INT,
+    @fechaInicio              DATE,
+    @fechaFin                 DATE,
+    @montoAlquiler            DECIMAL(12,2),
+    @estado                   VARCHAR(20) = 'Activa'
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.EmpresaConcesionaria WHERE idEmpresaConcesionaria = @idEmpresaConcesionaria)
+        SET @errores += '- El ID de la empresa concesionaria especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.TipoActividadConcesion WHERE idTipoActividadConcesion = @idTipoActividadConcesion)
+        SET @errores += '- El ID del tipo de actividad de concesión especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Parques.Parque WHERE idParque = @idParque)
+        SET @errores += '- El ID del parque especificado no existe.' + CHAR(10);
+
+
+    IF @fechaInicio IS NULL OR @fechaFin IS NULL
+        SET @errores += '- Las fechas de inicio y fin de contrato son obligatorias.' + CHAR(10);
+    ELSE IF @fechaFin <= @fechaInicio
+        SET @errores += '- La fecha de finalización del contrato debe ser estrictamente posterior a la fecha de inicio.' + CHAR(10);
+
+    IF @montoAlquiler IS NULL OR @montoAlquiler <= 0
+        SET @errores += '- El monto del alquiler/canon mensual debe ser una magnitud mayor a cero.' + CHAR(10);
+
+    IF @estado NOT IN ('Activa', 'Vencida', 'Cancelada')
+        SET @errores += '- El estado del contrato ingresado no es válido (Debe ser Activa, Vencida o Cancelada).' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Concesiones.Concesion (idEmpresaConcesionaria, idTipoActividadConcesion, idParque, fechaInicio, fechaFin, montoAlquiler, estado)
+    VALUES (@idEmpresaConcesionaria, @idTipoActividadConcesion, @idParque, @fechaInicio, @fechaFin, @montoAlquiler, @estado);
+
+    SELECT SCOPE_IDENTITY() AS idConcesionNueva;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Concesiones.sp_ModificacionConcesion
+    @idConcesion              INT,
+    @idEmpresaConcesionaria   INT,
+    @idTipoActividadConcesion INT,
+    @idParque                 INT,
+    @fechaInicio              DATE,
+    @fechaFin                 DATE,
+    @montoAlquiler            DECIMAL(12,2),
+    @estado                   VARCHAR(20)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.Concesion WHERE idConcesion = @idConcesion)
+        SET @errores += '- El ID del contrato de concesión especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.EmpresaConcesionaria WHERE idEmpresaConcesionaria = @idEmpresaConcesionaria)
+        SET @errores += '- El ID de la empresa concesionaria especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.TipoActividadConcesion WHERE idTipoActividadConcesion = @idTipoActividadConcesion)
+        SET @errores += '- El ID del tipo de actividad de concesión especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Parques.Parque WHERE idParque = @idParque)
+        SET @errores += '- El ID del parque especificado no existe.' + CHAR(10);
+
+    IF @fechaInicio IS NULL OR @fechaFin IS NULL
+        SET @errores += '- Las fechas de inicio y fin de contrato son obligatorias.' + CHAR(10);
+    ELSE IF @fechaFin <= @fechaInicio
+        SET @errores += '- La fecha de finalización debe ser estrictamente posterior a la fecha de inicio.' + CHAR(10);
+
+    IF @montoAlquiler IS NULL OR @montoAlquiler <= 0
+        SET @errores += '- El monto del alquiler debe ser una magnitud mayor a cero y no nula.' + CHAR(10);
+
+    IF @estado IS NULL OR @estado NOT IN ('Activa', 'Vencida', 'Cancelada')
+        SET @errores += '- El estado es obligatorio y debe ser Activa, Vencida o Cancelada.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    UPDATE Concesiones.Concesion
+    SET idEmpresaConcesionaria = @idEmpresaConcesionaria,
+        idTipoActividadConcesion = @idTipoActividadConcesion,
+        idParque = @idParque,
+        fechaInicio = @fechaInicio,
+        fechaFin = @fechaFin,
+        montoAlquiler = @montoAlquiler,
+        estado = @estado
+    WHERE idConcesion = @idConcesion;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Concesiones.sp_EliminarConcesion
+    @idConcesion INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.Concesion WHERE idConcesion = @idConcesion)
+        SET @errores += '- El ID del contrato de concesión a eliminar no existe.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Concesiones.PagoCanon WHERE idConcesion = @idConcesion)
+        SET @errores += '- Restricción de Integridad: No es posible eliminar el contrato de concesión porque posee registros de pagos históricos (PagoCanon) asociados.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    DELETE FROM Concesiones.Concesion 
+    WHERE idConcesion = @idConcesion;
+    
+    PRINT 'Contrato de concesión eliminado de forma exitosa.';
+END;
+GO
+
+-- ==========================================================
+-- TABLA PagoCanon
+-- ==========================================================
+
+CREATE OR ALTER PROCEDURE Concesiones.sp_AltaPagoCanon
+    @idConcesion      INT,
+    @fechaPago        DATE,
+    @monto            DECIMAL(12,2),
+    @fechaVencimiento DATE,
+    @fechaEmision     DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.Concesion WHERE idConcesion = @idConcesion)
+        SET @errores += '- El ID del contrato de concesión especificado no existe en los registros.' + CHAR(10);
+
+    IF @monto IS NULL OR @monto <= 0
+        SET @errores += '- El monto del canon debe ser una magnitud financiera estrictamente mayor a cero.' + CHAR(10);
+
+    IF @fechaVencimiento IS NULL OR @fechaEmision IS NULL
+        SET @errores += '- Las fechas de emisión y vencimiento del canon son campos de carácter obligatorio.' + CHAR(10);
+    ELSE IF @fechaVencimiento < @fechaEmision
+        SET @errores += '- Consistencia temporal: La fecha de vencimiento no puede ser anterior a la fecha de emisión del comprobante.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Concesiones.PagoCanon (idConcesion, fechaPago, monto, fechaVencimiento, fechaEmision)
+    VALUES (@idConcesion, @fechaPago, @monto, @fechaVencimiento, @fechaEmision);
+
+    SELECT SCOPE_IDENTITY() AS idPagoCanonNuevo;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Concesiones.sp_ModificacionPagoCanon
+    @idPagoCanon      INT,
+    @idConcesion      INT,
+    @fechaPago        DATE,
+    @monto            DECIMAL(12,2),
+    @fechaVencimiento DATE,
+    @fechaEmision     DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.PagoCanon WHERE idPagoCanon = @idPagoCanon)
+        SET @errores += '- El ID del registro de pago de canon a modificar no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Concesiones.Concesion WHERE idConcesion = @idConcesion)
+        SET @errores += '- El ID del contrato de concesión especificado no existe.' + CHAR(10);
+
+    IF @monto IS NULL OR @monto <= 0
+        SET @errores += '- El monto a modificar es obligatorio y debe ser mayor a cero.' + CHAR(10);
+
+    IF @fechaVencimiento IS NULL OR @fechaEmision IS NULL OR @fechaPago IS NULL
+        SET @errores += '- Las fechas de pago, emisión y vencimiento son mandatorias en la modificación.' + CHAR(10);
+    ELSE IF @fechaVencimiento < @fechaEmision
+        SET @errores += '- La fecha de vencimiento no puede ser anterior a la fecha de emisión.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    UPDATE Concesiones.PagoCanon
+    SET idConcesion = @idConcesion,
+        fechaPago = @fechaPago,
+        monto = @monto,
+        fechaVencimiento = @fechaVencimiento,
+        fechaEmision = @fechaEmision
+    WHERE idPagoCanon = @idPagoCanon;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Concesiones.sp_EliminarPagoCanon
+    @idPagoCanon INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    RAISERROR('- Error de Auditoría: Los registros históricos de PagoCanon no pueden ser eliminados físicamente del sistema por normativas de control fiscal.', 16, 1);
+    RETURN;
+END;
+GO
+
+-- ==========================================================
+-- TABLA TipoVisitante
+-- ==========================================================
+
+CREATE OR ALTER PROCEDURE Ventas.sp_AltaTipoVisitante
+    @nombre      VARCHAR(100),
+    @descripcion VARCHAR(300) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF @nombre IS NULL OR LTRIM(RTRIM(@nombre)) = ''
+        SET @errores += '- El nombre del tipo de visitante es obligatorio y no puede enviarse vacío.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Ventas.TipoVisitante WHERE nombre = @nombre)
+        SET @errores += '- El tipo de visitante ingresado ya se encuentra registrado en el catálogo.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Ventas.TipoVisitante (nombre, descripcion)
+    VALUES (LTRIM(RTRIM(@nombre)), LTRIM(RTRIM(@descripcion)));
+
+    SELECT SCOPE_IDENTITY() AS idTipoVisitanteNuevo;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_ModificacionTipoVisitante
+    @idTipoVisitante INT,
+    @nombre          VARCHAR(100),
+    @descripcion     VARCHAR(300) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.TipoVisitante WHERE idTipoVisitante = @idTipoVisitante)
+        SET @errores += '- El ID del tipo de visitante especificado no existe.' + CHAR(10);
+
+    IF @nombre IS NULL OR LTRIM(RTRIM(@nombre)) = ''
+        SET @errores += '- El nombre de la categoría es un campo obligatorio y no nulo.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Ventas.TipoVisitante WHERE nombre = @nombre AND idTipoVisitante <> @idTipoVisitante)
+        SET @errores += '- Ya existe otra categoría de visitante registrada con ese mismo nombre.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    UPDATE Ventas.TipoVisitante
+    SET nombre = LTRIM(RTRIM(@nombre)),
+        descripcion = LTRIM(RTRIM(@descripcion))
+    WHERE idTipoVisitante = @idTipoVisitante;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_EliminarTipoVisitante
+    @idTipoVisitante INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.TipoVisitante WHERE idTipoVisitante = @idTipoVisitante)
+        SET @errores += '- El ID de la categoría a eliminar no existe.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Ventas.Entrada WHERE idTipoVisitante = @idTipoVisitante)
+        SET @errores += '- Restricción de Integridad: No se puede eliminar la categoría porque existen tarifas de entrada vigentes vinculadas a este tipo de visitante.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    DELETE FROM Ventas.TipoVisitante 
+    WHERE idTipoVisitante = @idTipoVisitante;
+    
+    PRINT 'Tipo de visitante eliminado correctamente.';
+END;
+GO
+
+-- ==========================================================
+-- TABLA Visitante
+-- ==========================================================
+CREATE OR ALTER PROCEDURE Ventas.sp_AltaVisitante
+    @nombre    VARCHAR(50),
+    @apellido  VARCHAR(50),
+    @email     VARCHAR(100) = NULL,
+    @direccion VARCHAR(100) = NULL,
+    @telefono  VARCHAR(20) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF @nombre IS NULL OR LTRIM(RTRIM(@nombre)) = ''
+        SET @errores += '- El nombre del visitante es obligatorio y no puede quedar vacío.' + CHAR(10);
+
+    IF @apellido IS NULL OR LTRIM(RTRIM(@apellido)) = ''
+        SET @errores += '- El apellido del visitante es obligatorio y no puede quedar vacío.' + CHAR(10);
+
+    IF @email IS NOT NULL AND LTRIM(RTRIM(@email)) <> '' AND @email NOT LIKE '%_@__%.__%'
+        SET @errores += '- El formato del correo electrónico ingresado no es válido.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Ventas.Visitante (nombre, apellido, email, direccion, telefono)
+    VALUES (
+        LTRIM(RTRIM(@nombre)), 
+        LTRIM(RTRIM(@apellido)), 
+        NULLIF(LTRIM(RTRIM(@email)), ''), 
+        NULLIF(LTRIM(RTRIM(@direccion)), ''), 
+        NULLIF(LTRIM(RTRIM(@telefono)), '')
+    );
+
+    SELECT SCOPE_IDENTITY() AS idVisitanteNuevo;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_ModificacionVisitante
+    @idVisitante INT,
+    @nombre      VARCHAR(50),
+    @apellido    VARCHAR(50),
+    @email       VARCHAR(100) = NULL,
+    @direccion   VARCHAR(100) = NULL,
+    @telefono    VARCHAR(20) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Visitante WHERE idVisitante = @idVisitante)
+        SET @errores += '- El ID de visitante especificado no existe en el padrón central.' + CHAR(10);
+
+    IF @nombre IS NULL OR LTRIM(RTRIM(@nombre)) = ''
+        SET @errores += '- El nombre del visitante es requerido y no puede ser nulo.' + CHAR(10);
+
+    IF @apellido IS NULL OR LTRIM(RTRIM(@apellido)) = ''
+        SET @errores += '- El apellido del visitante es requerido y no puede ser nulo.' + CHAR(10);
+
+    IF @email IS NOT NULL AND LTRIM(RTRIM(@email)) <> '' AND @email NOT LIKE '%_@__%.__%'
+        SET @errores += '- El formato del correo electrónico ingresado no es válido.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    UPDATE Ventas.Visitante
+    SET nombre = LTRIM(RTRIM(@nombre)),
+        apellido = LTRIM(RTRIM(@apellido)),
+        email = NULLIF(LTRIM(RTRIM(@email)), ''),
+        direccion = NULLIF(LTRIM(RTRIM(@direccion)), ''),
+        telefono = NULLIF(LTRIM(RTRIM(@telefono)), '')
+    WHERE idVisitante = @idVisitante;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_EliminarVisitante
+    @idVisitante INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Visitante WHERE idVisitante = @idVisitante)
+        SET @errores += '- El ID de visitante a eliminar no existe.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Ventas.Venta WHERE idVisitante = @idVisitante)
+        SET @errores += '- Restricción de Integridad: No es posible remover al visitante debido a que registra tickets comerciales asociados en el módulo de ventas.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    DELETE FROM Ventas.Visitante 
+    WHERE idVisitante = @idVisitante;
+    
+    PRINT 'Visitante removido del padrón de forma exitosa.';
+END;
+GO
+
+
+-- ==========================================================
+-- TABLA Entrada
+-- ==========================================================
+CREATE OR ALTER PROCEDURE Ventas.sp_AltaEntrada
+    @idParque        INT,
+    @idTipoVisitante INT,
+    @precio          DECIMAL(10,2)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Parques.Parque WHERE idParque = @idParque)
+        SET @errores += '- El ID de parque especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.TipoVisitante WHERE idTipoVisitante = @idTipoVisitante)
+        SET @errores += '- El ID del tipo de visitante especificado no existe.' + CHAR(10);
+
+    IF @precio IS NULL OR @precio < 0
+        SET @errores += '- El precio de la tarifa no puede ser nulo ni tomar valores negativos.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Ventas.Entrada WHERE idParque = @idParque AND idTipoVisitante = @idTipoVisitante)
+        SET @errores += '- Error de catálogo: Ya existe una tarifa definida para ese Tipo de Visitante en el parque seleccionado.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Ventas.Entrada (idParque, idTipoVisitante, precio)
+    VALUES (@idParque, @idTipoVisitante, @precio);
+
+    SELECT SCOPE_IDENTITY() AS idEntradaNueva;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_ModificacionEntrada
+    @idEntrada       INT,
+    @idParque        INT,
+    @idTipoVisitante INT,
+    @precio          DECIMAL(10,2)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Entrada WHERE idEntrada = @idEntrada)
+        SET @errores += '- El ID del registro tarifario de entrada especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Parques.Parque WHERE idParque = @idParque)
+        SET @errores += '- El ID de parque especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.TipoVisitante WHERE idTipoVisitante = @idTipoVisitante)
+        SET @errores += '- El ID del tipo de visitante especificado no existe.' + CHAR(10);
+
+    IF @precio IS NULL OR @precio < 0
+        SET @errores += '- El precio de la tarifa es un campo obligatorio y no puede ser negativo.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Ventas.Entrada WHERE idParque = @idParque AND idTipoVisitante = @idTipoVisitante AND idEntrada <> @idEntrada)
+        SET @errores += '- Ya se encuentra registrado otro tarifario para esa combinación de parque y categoría.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    UPDATE Ventas.Entrada
+    SET idParque = @idParque,
+        idTipoVisitante = @idTipoVisitante,
+        precio = @precio
+    WHERE idEntrada = @idEntrada;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_EliminarEntrada
+    @idEntrada INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Entrada WHERE idEntrada = @idEntrada)
+        SET @errores += '- El ID de la tarifa a eliminar no existe.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Ventas.DetalleVenta WHERE idEntrada = @idEntrada)
+        SET @errores += '- Restricción de Integridad: No es posible eliminar el ítem de tarifa debido a que existen comprobantes de venta emitidos asociados a este código.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    DELETE FROM Ventas.Entrada 
+    WHERE idEntrada = @idEntrada;
+    
+    PRINT 'Tarifa de acceso removida correctamente del sistema.';
+END;
+GO
+
+-- ==========================================================
+-- TABLA Venta
+-- ==========================================================
+
+CREATE OR ALTER PROCEDURE Ventas.sp_AltaVenta
+    @idVisitante INT,
+    @formaPago   VARCHAR(50),
+    @puntoVenta  VARCHAR(50),
+    @total       DECIMAL(12,2) = 0.00
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Visitante WHERE idVisitante = @idVisitante)
+        SET @errores += '- El ID de visitante especificado no existe en el sistema.' + CHAR(10);
+
+    IF @formaPago IS NULL OR LTRIM(RTRIM(@formaPago)) NOT IN ('Efectivo', 'Tarjeta', 'Transferencia', 'Digital')
+        SET @errores += '- La forma de pago ingresada no es válida. (Valores aceptados: Efectivo, Tarjeta, Transferencia, Digital).' + CHAR(10);
+
+    IF @puntoVenta IS NULL OR LTRIM(RTRIM(@puntoVenta)) = ''
+        SET @errores += '- El punto de venta/emisión del ticket es obligatorio.' + CHAR(10);
+
+    IF @total IS NULL OR @total < 0
+        SET @errores += '- El total de la venta no puede ser una magnitud negativa.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Ventas.Venta (idVisitante, fechaHora, formaPago, puntoVenta, total)
+    VALUES (@idVisitante, GETDATE(), LTRIM(RTRIM(@formaPago)), LTRIM(RTRIM(@puntoVenta)), @total);
+
+    SELECT SCOPE_IDENTITY() AS idVentaNueva;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_ModificacionVenta
+    @idVenta     INT,
+    @idVisitante INT,
+    @formaPago   VARCHAR(50),
+    @puntoVenta  VARCHAR(50),
+    @total       DECIMAL(12,2)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Venta WHERE idVenta = @idVenta)
+        SET @errores += '- El ID del ticket de venta especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Visitante WHERE idVisitante = @idVisitante)
+        SET @errores += '- El ID de visitante especificado no existe.' + CHAR(10);
+
+    IF @formaPago IS NULL OR LTRIM(RTRIM(@formaPago)) NOT IN ('Efectivo', 'Tarjeta', 'Transferencia', 'Digital')
+        SET @errores += '- La forma de pago modificada no es válida. (Valores aceptados: Efectivo, Tarjeta, Transferencia, Digital).' + CHAR(10);
+
+    IF @puntoVenta IS NULL OR LTRIM(RTRIM(@puntoVenta)) = ''
+        SET @errores += '- El punto de venta es requerido.' + CHAR(10);
+
+    IF @total IS NULL OR @total < 0
+        SET @errores += '- El monto total no puede ser nulo ni negativo.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Ventas.Venta WHERE idVenta = @idVenta AND estado = 'Anulada')
+        SET @errores += '- No se puede modificar un ticket que ya fue anulado.' + CHAR(10);
+        
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    UPDATE Ventas.Venta
+    SET idVisitante = @idVisitante,
+        formaPago = LTRIM(RTRIM(@formaPago)),
+        puntoVenta = LTRIM(RTRIM(@puntoVenta)),
+        total = @total
+    WHERE idVenta = @idVenta;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_EliminarVenta
+    @idVenta INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Venta WHERE idVenta = @idVenta)
+        SET @errores += '- El ID de la venta a eliminar no existe.' + CHAR(10);
+
+    IF EXISTS (SELECT 1 FROM Ventas.DetalleVenta WHERE idVenta = @idVenta)
+        SET @errores += '- Restricción de Integridad: No es posible eliminar la cabecera de la venta porque registra ítems facturados (DetalleVenta) asociados.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    DELETE FROM Ventas.Venta 
+    WHERE idVenta = @idVenta;
+    
+    PRINT 'Ticket de venta removido de forma física correctamente.';
+END;
+GO
+
+
+-- ==========================================================
+-- TABLA DetalleVenta
+-- ==========================================================
+CREATE OR ALTER PROCEDURE Ventas.sp_AltaDetalleVenta
+    @idVenta         INT,
+    @idEntrada       INT,
+    @cantidad        INT,
+    @precioUnitario  DECIMAL(12,2),
+    @fechaAcceso     DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Venta WHERE idVenta = @idVenta)
+        SET @errores += '- El ID del ticket de venta especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Entrada WHERE idEntrada = @idEntrada)
+        SET @errores += '- El ID del registro tarifario de entrada especificado no existe.' + CHAR(10);
+
+    IF @cantidad IS NULL OR @cantidad <= 0
+        SET @errores += '- La cantidad de entradas por ítem debe ser estrictamente mayor a cero.' + CHAR(10);
+
+    IF @precioUnitario IS NULL OR @precioUnitario < 0
+        SET @errores += '- El precio unitario del renglón no puede tomar valores negativos.' + CHAR(10);
+
+    IF @fechaAcceso IS NULL
+        SET @errores += '- La fecha planificada de acceso al parque es un dato obligatorio.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO Ventas.DetalleVenta (idVenta, idEntrada, cantidad, precio, fechaAcceso)
+    VALUES (@idVenta, @idEntrada, @cantidad, @precioUnitario, @fechaAcceso);
+
+    SELECT SCOPE_IDENTITY() AS idDetalleVentaNuevo;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_ModificacionDetalleVenta
+    @idDetalleVenta INT,
+    @idVenta        INT,
+    @idEntrada      INT,
+    @cantidad       INT,
+    @precioUnitario  DECIMAL(12,2),
+    @fechaAcceso     DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.DetalleVenta WHERE idDetalleVenta = @idDetalleVenta)
+        SET @errores += '- El ID del renglón de detalle especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Venta WHERE idVenta = @idVenta)
+        SET @errores += '- El ID del ticket de venta Bird especificado no existe.' + CHAR(10);
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.Entrada WHERE idEntrada = @idEntrada)
+        SET @errores += '- El ID de la tarifa especificada no existe.' + CHAR(10);
+
+    IF @cantidad IS NULL OR @cantidad <= 0
+        SET @errores += '- La cantidad modificada debe ser mayor a cero.' + CHAR(10);
+
+    IF @precioUnitario IS NULL OR @precioUnitario < 0
+        SET @errores += '- El precio unitario modificado no puede ser nulo ni negativo.' + CHAR(10);
+
+    IF @fechaAcceso IS NULL
+        SET @errores += '- La fecha modificada de acceso al parque no puede ser nula.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    UPDATE Ventas.DetalleVenta
+    SET idVenta = @idVenta,
+        idEntrada = @idEntrada,
+        cantidad = @cantidad,
+        precio = @precioUnitario,
+        fechaAcceso = @fechaAcceso
+    WHERE idDetalleVenta = @idDetalleVenta;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Ventas.sp_EliminarDetalleVenta
+    @idDetalleVenta INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @errores VARCHAR(1000) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM Ventas.DetalleVenta WHERE idDetalleVenta = @idDetalleVenta)
+        SET @errores += '- El ID del detalle de venta a eliminar no existe.' + CHAR(10);
+
+    IF @errores <> ''
+    BEGIN
+        RAISERROR(@errores, 16, 1);
+        RETURN;
+    END
+
+    DELETE FROM Ventas.DetalleVenta 
+    WHERE idDetalleVenta = @idDetalleVenta;
+    
+    PRINT 'Renglón de la venta eliminado correctamente.';
 END;
 GO
