@@ -1951,6 +1951,9 @@ BEGIN
     IF @total IS NULL OR @total < 0
         SET @errores += '- El monto total no puede ser nulo ni negativo.' + CHAR(10);
 
+    IF EXISTS (SELECT 1 FROM Ventas.Venta WHERE idVenta = @idVenta AND estado = 'Anulada')
+        SET @errores += '- No se puede modificar un ticket que ya fue anulado.' + CHAR(10);
+        
     IF @errores <> ''
     BEGIN
         RAISERROR(@errores, 16, 1);

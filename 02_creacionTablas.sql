@@ -301,18 +301,20 @@ CREATE TABLE Ventas.Visitante (
 GO
 
 CREATE TABLE Ventas.Venta (
-    idVenta      INT           IDENTITY(1,1),
-    idVisitante  INT           NOT NULL,
-    fechaHora    DATETIME      NOT NULL DEFAULT GETDATE(),
-    formaPago    VARCHAR(50)   NOT NULL,
-    puntoVenta   VARCHAR(100)  NOT NULL,
-    total        DECIMAL(12,2) NOT NULL DEFAULT 0,
+    idVenta     INT          IDENTITY(1,1),
+    idVisitante INT          NOT NULL,
+    fechaHora   DATETIME     NOT NULL DEFAULT GETDATE(),
+    formaPago   VARCHAR(50)  NOT NULL,
+    puntoVenta  VARCHAR(50)  NOT NULL,
+    total       DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    estado      VARCHAR(20)  NOT NULL DEFAULT 'Completada',
 
     CONSTRAINT PK_Venta PRIMARY KEY (idVenta),
     CONSTRAINT FK_Venta_Visitante FOREIGN KEY (idVisitante)
         REFERENCES Ventas.Visitante (idVisitante),
     CONSTRAINT CK_Venta_Total CHECK (total >= 0),
-    CONSTRAINT CK_Venta_FormaPago CHECK (formaPago IN ('Efectivo','Tarjeta','Transferencia','Digital'))
+    CONSTRAINT CK_Venta_FormaPago CHECK (formaPago IN ('Efectivo', 'Tarjeta', 'Transferencia', 'Digital')),
+    CONSTRAINT CK_Venta_Estado CHECK (estado IN ('Completada', 'Anulada'))
 );
 GO
 
