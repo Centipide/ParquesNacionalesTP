@@ -1,0 +1,69 @@
+-- ============================================================
+-- Fecha: 2025-06-19
+-- Descripción: Reporte de visitas por semana, mes y año,
+-- por parque
+-- ============================================================
+-- ============================================================
+-- INTEGRANTES
+--  Ayala Bustos, Gustavo Gabriel
+--  Bonfigli, Leonardo
+--  Casale Benavente, Pedro Santino
+--  Martinez Souto, Joaquin
+-- ============================================================
+
+USE ParquesNacionales
+GO
+
+-- ========================================================================
+-- 1. REPORTE DE VISITAS POR SEMANA, MES Y AÑO, POR PARQUE
+-- ========================================================================
+-- Se calcula sobre Ventas.DetalleVenta (cantidad de entradas vendidas),
+-- agrupando por las distintas granularidades de fechaAcceso.
+
+CREATE OR ALTER PROCEDURE Reportes.sp_VisitasPorPeriodo
+AS
+BEGIN
+	SET NOCOUNT ON
+
+	-- Visitas por semana
+
+	SELECT 
+		p.idParque,
+		p.nombre						AS parque,
+		YEAR(dv.fechaAcceso)			AS anio,
+		DATEPART(WEEK, dv.fechaAcceso)	AS semana,
+		SUM(dv.cantidad)				AS totalVisitas
+	FROM Ventas.DetalleVenta dv
+	JOIN Ventas.Entrada e ON e.idEntrada = dv.idEntrada
+	JOIN Parques.Parque p ON p.idParque = e.idParque
+	GROUP BY p.idParque, p.nombre, YEAR(dv.fechaAcceso), DATEPART(WEEK, dv.fechaAcceso)
+	ORDER BY p.nombre, anio, semana;
+
+	-- Visitas por mes
+	
+	SELECT 
+		p.idParque,
+		p.nombre				AS parque,
+		YEAR(dv.fechaAcceso)	AS anio,
+		MONTH(dv.fechaAcceso)	AS mes,
+		SUM(dv.cantidad)		AS totalVisitas
+	FROM Ventas.DetalleVenta dv
+	JOIN Ventas.Entrada e ON e.idEntrada = dv.idEntrada
+	JOIN Parques.Parque p ON p.idParque = e.idParque
+	GROUP BY p.idParque, p.nombre, YEAR(dv.fechaAcceso), MONTH(dv.fechaAcceso)
+	ORDER BY p.nombre, anio, mes;
+
+	-- Visitas por año
+
+	SELECT 
+		p.idParque,
+		p.nombre				AS parque,
+		YEAR(dv.fechaAcceso)	AS anio,
+		SUM(dv.cantidad)		AS totalVisitas
+	FROM Ventas.DetalleVenta dv
+	JOIN Ventas.Entrada e ON e.idEntrada = dv.idEntrada
+	JOIN Parques.Parque p ON p.idParque = e.idParque
+	GROUP BY p.idParque, p.nombre, YEAR(dv.fechaAcceso)
+	ORDER BY p.nombre, anio;
+END
+GO
