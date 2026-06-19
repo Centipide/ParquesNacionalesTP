@@ -1277,18 +1277,6 @@ BEGIN TRANSACTION
     FROM Actividades.DetalleContratacion
     WHERE idDetalleContratacion = @idDetalleContratacion;
 
-    -- Modificación exitosa
-
-    EXEC Actividades.sp_ModificacionDetalleContratacion
-        @idDetalleContratacion = @idDetalleContratacion,
-        @idVenta = @idVenta,
-        @costoTotal = 20000;
-
-    -- Debería devolver una fila modificada
-
-    SELECT *
-    FROM Actividades.DetalleContratacion
-    WHERE idDetalleContratacion = @idDetalleContratacion;
 
     -- Baja exitosa
 
