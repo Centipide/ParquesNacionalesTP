@@ -651,7 +651,7 @@ GO
 -- ==========================================================
 CREATE OR ALTER PROCEDURE Parques.sp_AltaParque
     @idTipoParque INT,
-    @nombre       VARCHAR(50),
+    @nombre       VARCHAR(100),
     @region       VARCHAR(50),
     @provincia    VARCHAR(30),
     @superficie   DECIMAL(10,2)
@@ -696,7 +696,7 @@ GO
 CREATE OR ALTER PROCEDURE Parques.sp_ModificacionParque
     @idParque     INT,
     @idTipoParque INT,
-    @nombre       VARCHAR(50),
+    @nombre       VARCHAR(100),
     @region       VARCHAR(50),
     @provincia    VARCHAR(30),
     @superficie   DECIMAL(10,2)
@@ -787,7 +787,7 @@ GO
 -- TABLA TipoParque
 -- ==========================================================
 CREATE OR ALTER PROCEDURE Parques.sp_AltaTipoParque
-    @nombre      VARCHAR(30),
+    @nombre      VARCHAR(100),
     @descripcion VARCHAR(100)
 AS
 BEGIN
@@ -820,7 +820,7 @@ GO
 
 CREATE OR ALTER PROCEDURE Parques.sp_ModificacionTipoParque
     @idTipoParque INT,
-    @nombre       VARCHAR(30),
+    @nombre       VARCHAR(100),
     @descripcion  VARCHAR(100)
 AS
 BEGIN

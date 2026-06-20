@@ -20,7 +20,7 @@ GO
 
 CREATE TABLE Parques.TipoParque (
     idTipoParque INT          IDENTITY(1,1),
-    nombre       VARCHAR(30)  NOT NULL,
+    nombre       VARCHAR(100)  NOT NULL,
     descripcion  VARCHAR(100) NULL,
 
     CONSTRAINT PK_TipoParque PRIMARY KEY (idTipoParque),
@@ -31,7 +31,7 @@ GO
 CREATE TABLE Parques.Parque (
     idParque     INT           IDENTITY(1,1),
     idTipoParque INT           NOT NULL,
-    nombre       VARCHAR(50)   NOT NULL,
+    nombre       VARCHAR(100)   NOT NULL,
     region    VARCHAR(50)   NOT NULL,
     provincia    VARCHAR(30)   NOT NULL,
     superficie   DECIMAL(10,2) NOT NULL,
