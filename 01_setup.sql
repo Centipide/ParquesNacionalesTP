@@ -47,7 +47,7 @@ CREATE SCHEMA Ventas;           -- Entradas, visitantes y ventas
 GO
 CREATE SCHEMA Personal;         -- Guardaparques
 GO
-CREATE SCHEMA Importacion       -- Importacion de datos
+CREATE SCHEMA Importacion       -- SP de migración + cifrado masivo
 GO
-CREATE SCHEMA Reportes
+CREATE SCHEMA Reportes          -- SP de consultas + descifrado
 GO
