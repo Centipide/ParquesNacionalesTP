@@ -21,6 +21,8 @@ GO
 -- agrupando por las distintas granularidades de fechaAcceso.
 
 CREATE OR ALTER PROCEDURE Reportes.sp_VisitasPorPeriodo
+    @idParque INT = NULL,
+    @anio     INT = NULL
 AS
 BEGIN
 	SET NOCOUNT ON
@@ -36,8 +38,11 @@ BEGIN
 	FROM Ventas.DetalleVenta dv
 	JOIN Ventas.Entrada e ON e.idEntrada = dv.idEntrada
 	JOIN Parques.Parque p ON p.idParque = e.idParque
+	WHERE (@idParque IS NULL OR e.idParque = @idParque)
+  		AND (@anio IS NULL OR YEAR(dv.fechaAcceso) = @anio)
 	GROUP BY p.idParque, p.nombre, YEAR(dv.fechaAcceso), DATEPART(WEEK, dv.fechaAcceso)
 	ORDER BY p.nombre, anio, semana;
+
 
 	-- Visitas por mes
 	
@@ -50,6 +55,8 @@ BEGIN
 	FROM Ventas.DetalleVenta dv
 	JOIN Ventas.Entrada e ON e.idEntrada = dv.idEntrada
 	JOIN Parques.Parque p ON p.idParque = e.idParque
+	WHERE (@idParque IS NULL OR e.idParque = @idParque)
+  		AND (@anio     IS NULL OR YEAR(dv.fechaAcceso) = @anio)
 	GROUP BY p.idParque, p.nombre, YEAR(dv.fechaAcceso), MONTH(dv.fechaAcceso)
 	ORDER BY p.nombre, anio, mes;
 
@@ -63,7 +70,24 @@ BEGIN
 	FROM Ventas.DetalleVenta dv
 	JOIN Ventas.Entrada e ON e.idEntrada = dv.idEntrada
 	JOIN Parques.Parque p ON p.idParque = e.idParque
+	WHERE (@idParque IS NULL OR e.idParque = @idParque)
+  		AND (@anio     IS NULL OR YEAR(dv.fechaAcceso) = @anio)
 	GROUP BY p.idParque, p.nombre, YEAR(dv.fechaAcceso)
 	ORDER BY p.nombre, anio;
+
+	-- Visitas históricas por parque
+
+	SELECT 
+        p.idParque,
+        p.nombre                AS parque,
+        SUM(dv.cantidad)        AS totalVisitasHistoricas
+    FROM Ventas.DetalleVenta dv
+    JOIN Ventas.Entrada e ON e.idEntrada = dv.idEntrada
+    JOIN Parques.Parque p ON p.idParque = e.idParque
+    WHERE (@idParque IS NULL OR e.idParque = @idParque)
+        AND (@anio IS NULL OR YEAR(dv.fechaAcceso) = @anio)
+    GROUP BY p.idParque, p.nombre
+    ORDER BY totalVisitasHistoricas DESC, p.nombre;
 END
 GO
+
