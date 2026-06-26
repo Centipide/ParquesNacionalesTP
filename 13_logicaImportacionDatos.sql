@@ -45,7 +45,7 @@ BEGIN
         SELECT idArea, nombre, superficie, pais,
                 subnaciona, tipo, nivelGobi, gestion, creacion, legal, ecoregion
         FROM OPENROWSET(
-            BULK 'C:\Datasets\af_ha007__rea_protegida_argentina_geojson_TEST.txt', SINGLE_CLOB) AS archJson
+            BULK 'C:\Datasets\af_ha007__rea_protegida_argentina_geojson.txt', SINGLE_CLOB, CODEPAGE = '65001') AS archJson
         CROSS APPLY OPENJSON(archJson.BulkColumn, '$.features')
         WITH (
             idArea     INT           '$.properties.ID',
@@ -268,7 +268,7 @@ BEGIN
     )
 
     BULK INSERT #Visitas
-    FROM 'C:\Datasets\visitas-residentes-y-no-residentes_TEST.csv'
+    FROM 'C:\Datasets\visitas-residentes-y-no-residentes.csv'
     WITH (
         FIRSTROW = 2,
         FIELDTERMINATOR = ',',
@@ -401,7 +401,7 @@ BEGIN
     )
 
     BULK INSERT #GuiasTurismo
-    FROM 'C:\Datasets\registro-de-guias-de-turismo_TEST.csv'
+    FROM 'C:\Datasets\registro-de-guias-de-turismo.csv'
     WITH (
         FIRSTROW = 2,
         FIELDTERMINATOR = ';',
