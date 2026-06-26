@@ -3,15 +3,15 @@
 **Universidad Nacional de La Matanza**  
 **Departamento de Ingeniería e Investigaciones Tecnológicas**  
 **Asignatura:** Bases de Datos Aplicada  
-**Año:** 2026 | **Cuatrimestre:** 1°  
-**Comisión:** 02-5600 | **Grupo:** 05  
+**Año 2026 1° Cuatrimestre**   
+**Comisión:** 02-5600
 **Profesores:**
  - BOSSERO, JULIO CESAR  
  - HNATIUK, JAIR EZEQUIEL  
 
 ---
 
-## Integrantes
+## **Grupo:** 05:
 
 | Apellido y Nombre | GitHub |
 |---|---|
