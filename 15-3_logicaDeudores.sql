@@ -20,15 +20,6 @@ CREATE OR ALTER PROCEDURE Reportes.sp_ConcesionesDeudoras
 
 AS
 BEGIN
-    
-    IF @fechaCorte IS NULL
-        SET @fechaCorte = CAST(GETDATE() AS DATE)
- 
-    -- Meses facturables: desde fechaInicio hasta hoy (o fechaFin si ya venció)
-    -- Un mes es "facturable" si la concesión ya lo completó
- 
-    -- Último pago registrado por concesión
- 
     SELECT
         -- Identificación
         c.idConcesion,
@@ -62,8 +53,6 @@ BEGIN
     WHERE pc.fechaPago > pc.fechaVencimiento OR pc.fechaPago IS NULL
     ORDER BY
         e.razonSocial ASC;
-    
- 
 END
 GO
 
