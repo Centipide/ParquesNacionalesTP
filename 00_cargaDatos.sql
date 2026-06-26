@@ -527,6 +527,96 @@ EXEC Actividades.sp_AltaContratacion @idDetalleContratacion = @idDetCont1,
 EXEC Actividades.sp_AltaContratacion @idDetalleContratacion = @idDetCont2,
     @idActividadProgramada = @idProg2, @costo = 35000.00, @estado = 'Completada', @cantidadPersonas = 1
 
+DECLARE @idDetCont3 INT, @idDetCont4 INT, @idDetCont5 INT;
+
+EXEC Actividades.sp_AltaDetalleContratacion 
+    @idVenta = @idVenta4, @costoTotal = 48000.00;
+SELECT @idDetCont3 = MAX(idDetalleContratacion) 
+    FROM Actividades.DetalleContratacion WHERE idVenta = @idVenta4;
+
+EXEC Actividades.sp_AltaContratacion 
+    @idDetalleContratacion = @idDetCont3,
+    @idActividadProgramada = @idProg3, 
+    @costo = 48000.00, @estado = 'Completada', @cantidadPersonas = 3;
+
+DECLARE @idProg4_Aux INT;
+SELECT @idProg4_Aux = MAX(idActividadProgramada) FROM Actividades.ActividadProgramada;
+
+EXEC Actividades.sp_AltaDetalleContratacion 
+    @idVenta = @idVenta5, @costoTotal = 62000.00;
+SELECT @idDetCont4 = MAX(idDetalleContratacion) 
+    FROM Actividades.DetalleContratacion WHERE idVenta = @idVenta5;
+
+EXEC Actividades.sp_AltaContratacion 
+    @idDetalleContratacion = @idDetCont4,
+    @idActividadProgramada = @idProg4_Aux, 
+    @costo = 62000.00, @estado = 'Completada', @cantidadPersonas = 4;
+
+EXEC Actividades.sp_AltaDetalleContratacion 
+    @idVenta = @idVenta2, @costoTotal = 27000.00;
+SELECT @idDetCont5 = MAX(idDetalleContratacion) 
+    FROM Actividades.DetalleContratacion WHERE idVenta = @idVenta2;
+
+EXEC Actividades.sp_AltaContratacion 
+    @idDetalleContratacion = @idDetCont5,
+    @idActividadProgramada = @idProg1, 
+    @costo = 27000.00, @estado = 'Completada', @cantidadPersonas = 1;
+
+-- ==========================================================
+-- PAGOS DE CANON
+-- ==========================================================
+
+DECLARE @idConc1 INT, @idConc2 INT, @idConc3 INT, 
+        @idConc4 INT, @idConc5 INT;
+
+SELECT @idConc1 = MIN(idConcesion) FROM Concesiones.Concesion 
+    WHERE estado = 'Activa' AND idParque = @idParque1;
+SELECT @idConc2 = MIN(idConcesion) FROM Concesiones.Concesion 
+    WHERE estado = 'Activa' AND idParque = @idParque2;
+SELECT @idConc3 = MIN(idConcesion) FROM Concesiones.Concesion 
+    WHERE estado = 'Activa' AND idParque = @idParque3;
+SELECT @idConc4 = MIN(idConcesion) FROM Concesiones.Concesion 
+    WHERE estado = 'Activa' AND idParque = @idParque5;
+SELECT @idConc5 = MIN(idConcesion) FROM Concesiones.Concesion 
+    WHERE estado = 'Activa' AND idParque = @idParque6;
+
+-- Cánones de 2025 (historial anterior)
+EXEC Concesiones.sp_AltaPagoCanon 
+    @idConcesion = @idConc1, @fechaPago = '2025-03-10',
+    @monto = 600000.00, @fechaVencimiento = '2025-03-31', @fechaEmision = '2025-03-01';
+
+EXEC Concesiones.sp_AltaPagoCanon 
+    @idConcesion = @idConc2, @fechaPago = '2025-05-08',
+    @monto = 450000.00, @fechaVencimiento = '2025-05-31', @fechaEmision = '2025-05-01';
+
+EXEC Concesiones.sp_AltaPagoCanon 
+    @idConcesion = @idConc3, @fechaPago = '2025-09-15',
+    @monto = 800000.00, @fechaVencimiento = '2025-09-30', @fechaEmision = '2025-09-01';
+
+-- Cánones de 2026
+EXEC Concesiones.sp_AltaPagoCanon 
+    @idConcesion = @idConc1, @fechaPago = '2026-01-12',
+    @monto = 600000.00, @fechaVencimiento = '2026-01-31', @fechaEmision = '2026-01-01';
+
+EXEC Concesiones.sp_AltaPagoCanon 
+    @idConcesion = @idConc1, @fechaPago = '2026-02-10',
+    @monto = 600000.00, @fechaVencimiento = '2026-02-28', @fechaEmision = '2026-02-01';
+
+EXEC Concesiones.sp_AltaPagoCanon 
+    @idConcesion = @idConc2, @fechaPago = '2026-01-15',
+    @monto = 450000.00, @fechaVencimiento = '2026-01-31', @fechaEmision = '2026-01-01';
+
+EXEC Concesiones.sp_AltaPagoCanon 
+    @idConcesion = @idConc3, @fechaPago = '2026-03-08',
+    @monto = 800000.00, @fechaVencimiento = '2026-03-31', @fechaEmision = '2026-03-01';
+
+EXEC Concesiones.sp_AltaPagoCanon 
+    @idConcesion = @idConc4, @fechaPago = '2026-04-20',
+    @monto = 120000.00, @fechaVencimiento = '2026-04-30', @fechaEmision = '2026-04-01';
+
+EXEC Concesiones.sp_AltaPagoCanon 
+    @idConcesion = @idConc5, @fechaPago = '2026-05-05',
+    @monto = 350000.00, @fechaVencimiento = '2026-05-31', @fechaEmision = '2026-05-01';
 
 -- ==========================================================
 -- DEMOSTRACION
@@ -540,3 +630,5 @@ SELECT * FROM Personal.Guardaparque
 SELECT * FROM Concesiones.Concesion
 SELECT * FROM Ventas.Venta
 SELECT * FROM Ventas.DetalleVenta
+SELECT * FROM Actividades.DetalleContratacion
+SELECT * FROM Actividades.Contratacion
