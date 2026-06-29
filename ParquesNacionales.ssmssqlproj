@@ -2,108 +2,159 @@
 <SqlWorkbenchSqlProject xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="ParquesNacionales">
   <Items>
     <LogicalFolder Name="Conexiones" Type="2" Sorted="true">
-      <Items>
-        <ConnectionNode Name="Cent\SQLEXPRESS01:CENT\pedro">
-          <Created>2026-06-12T22:24:01.5460904-03:00</Created>
-          <Type>SQL</Type>
-          <Server>Cent\SQLEXPRESS01</Server>
-          <UserName />
-          <Authentication>Autenticación de Windows</Authentication>
-          <InitialDB />
-          <LoginTimeout>15</LoginTimeout>
-          <TrustServerCertificate>False</TrustServerCertificate>
-          <EncryptionOption>False</EncryptionOption>
-          <ExecutionTimeout>0</ExecutionTimeout>
-          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
-          <ApplicationName>SQL Server Management Studio</ApplicationName>
-        </ConnectionNode>
-      </Items>
+      <Items />
     </LogicalFolder>
     <LogicalFolder Name="Consultas" Type="0" Sorted="true">
       <Items>
-        <FileNode Name="01_setup.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Cent\SQLEXPRESS01:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Cent\SQLEXPRESS01</AssociatedConnSrvName>
+        <FileNode Name="001_setup.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>01_setup.sql</FullPath>
+          <FullPath>001_setup.sql</FullPath>
         </FileNode>
-        <FileNode Name="02_creacionTablas.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Cent\SQLEXPRESS01:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Cent\SQLEXPRESS01</AssociatedConnSrvName>
+        <FileNode Name="002_creacionTablas.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>02_creacionTablas.sql</FullPath>
+          <FullPath>002_creacionTablas.sql</FullPath>
         </FileNode>
-        <FileNode Name="03_ABM.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Cent\SQLEXPRESS01:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Cent\SQLEXPRESS01</AssociatedConnSrvName>
+        <FileNode Name="003_ABM.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>03_ABM.sql</FullPath>
+          <FullPath>003_ABM.sql</FullPath>
         </FileNode>
-        <FileNode Name="04_testingABM.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Cent\SQLEXPRESS01:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Cent\SQLEXPRESS01</AssociatedConnSrvName>
+        <FileNode Name="004_logicaVentaEntradas.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>04_testingABM.sql</FullPath>
+          <FullPath>004_logicaVentaEntradas.sql</FullPath>
         </FileNode>
-        <FileNode Name="05_logicaVentaEntradas.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Cent\SQLEXPRESS01:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Cent\SQLEXPRESS01</AssociatedConnSrvName>
+        <FileNode Name="005_logicaRegistroActividades.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>05_logicaVentaEntradas.sql</FullPath>
+          <FullPath>005_logicaRegistroActividades.sql</FullPath>
         </FileNode>
-        <FileNode Name="06_testingVentaEntradas.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Cent\SQLEXPRESS01:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Cent\SQLEXPRESS01</AssociatedConnSrvName>
+        <FileNode Name="006_logicaAsignacionGuias.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>06_testingVentaEntradas.sql</FullPath>
+          <FullPath>006_logicaAsignacionGuias.sql</FullPath>
         </FileNode>
-        <FileNode Name="07_logicaRegistroActividades.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Cent\SQLEXPRESS01:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Cent\SQLEXPRESS01</AssociatedConnSrvName>
+        <FileNode Name="007_logicaGestionConcesiones.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>07_logicaRegistroActividades.sql</FullPath>
+          <FullPath>007_logicaGestionConcesiones.sql</FullPath>
         </FileNode>
-        <FileNode Name="08_testingRegistroActividades.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Cent\SQLEXPRESS01:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Cent\SQLEXPRESS01</AssociatedConnSrvName>
+        <FileNode Name="008_cargaDatos.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>08_testingRegistroActividades.sql</FullPath>
+          <FullPath>008_cargaDatos.sql</FullPath>
         </FileNode>
-        <FileNode Name="09_logicaAsignacionGuias.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Cent\SQLEXPRESS01:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Cent\SQLEXPRESS01</AssociatedConnSrvName>
+        <FileNode Name="009_logicaImportacionDatos.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>09_logicaAsignacionGuias.sql</FullPath>
+          <FullPath>009_logicaImportacionDatos.sql</FullPath>
         </FileNode>
-        <FileNode Name="10_testingAsignacionGuias.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Cent\SQLEXPRESS01:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Cent\SQLEXPRESS01</AssociatedConnSrvName>
+        <FileNode Name="101_logicaTestingReporteVisitas.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>10_testingAsignacionGuias.sql</FullPath>
+          <FullPath>101_logicaTestingReporteVisitas.sql</FullPath>
         </FileNode>
-        <FileNode Name="11_logicaGestionConcesiones.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Cent\SQLEXPRESS01:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Cent\SQLEXPRESS01</AssociatedConnSrvName>
+        <FileNode Name="102_LogicaTestingReporteIngresosPorParque.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>11_logicaGestionConcesiones.sql</FullPath>
+          <FullPath>102_LogicaTestingReporteIngresosPorParque.sql</FullPath>
         </FileNode>
-        <FileNode Name="12_testingGestionConcesiones.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Cent\SQLEXPRESS01:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Cent\SQLEXPRESS01</AssociatedConnSrvName>
+        <FileNode Name="103_logicaTestingReporteDeudores.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>12_testingGestionConcesiones.sql</FullPath>
+          <FullPath>103_logicaTestingReporteDeudores.sql</FullPath>
         </FileNode>
-        <FileNode Name="13_logicaImportacionDatos.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Cent\SQLEXPRESS01:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Cent\SQLEXPRESS01</AssociatedConnSrvName>
+        <FileNode Name="104_logicaTestingReporteMatrizVisitas.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>13_logicaImportacionDatos.sql</FullPath>
+          <FullPath>104_logicaTestingReporteMatrizVisitas.sql</FullPath>
         </FileNode>
-        <FileNode Name="14_testingImportacionDatos.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:Cent\SQLEXPRESS01:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>Cent\SQLEXPRESS01</AssociatedConnSrvName>
+        <FileNode Name="105_logicaTestingReporteParquesYConcesiones.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
           <AssociatedConnUserName />
-          <FullPath>14_testingImportacionDatos.sql</FullPath>
+          <FullPath>105_logicaTestingReporteParquesYConcesiones.sql</FullPath>
+        </FileNode>
+        <FileNode Name="201_encriptacion.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>201_encriptacion.sql</FullPath>
+        </FileNode>
+        <FileNode Name="202_ABMconEncriptacion.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>202_ABMconEncriptacion.sql</FullPath>
+        </FileNode>
+        <FileNode Name="203_migracionADatosEncriptados.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>203_migracionADatosEncriptados.sql</FullPath>
+        </FileNode>
+        <FileNode Name="204_testingABMEncriptacion.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>204_testingABMEncriptacion.sql</FullPath>
+        </FileNode>
+        <FileNode Name="205_Roles.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>205_Roles.sql</FullPath>
+        </FileNode>
+        <FileNode Name="301_testingABM.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>301_testingABM.sql</FullPath>
+        </FileNode>
+        <FileNode Name="302_testingVentaEntradas.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>302_testingVentaEntradas.sql</FullPath>
+        </FileNode>
+        <FileNode Name="303_testingRegistroActividades.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>303_testingRegistroActividades.sql</FullPath>
+        </FileNode>
+        <FileNode Name="304_testingAsignacionGuias.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>304_testingAsignacionGuias.sql</FullPath>
+        </FileNode>
+        <FileNode Name="305_testingGestionConcesiones.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>305_testingGestionConcesiones.sql</FullPath>
+        </FileNode>
+        <FileNode Name="306_testingImportacionDatos.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>306_testingImportacionDatos.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>

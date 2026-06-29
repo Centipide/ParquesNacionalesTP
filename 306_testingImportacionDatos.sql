@@ -1,6 +1,6 @@
 -- ============================================================
 -- Fecha: 2025-06-20
--- Descripción: Testing para la Importacion de Archivos.
+-- DescripciÃ³n: Testing para la Importacion de Archivos.
 --		Los lotes de prueba se encuentran en los archivos.
 -- ============================================================
 -- ============================================================
