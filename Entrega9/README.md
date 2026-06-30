@@ -10,6 +10,21 @@ Para cumplir con los requerimientos de la **Novena Entrega**, desarrollamos una 
 
 ## Instrucciones de Configuración y Despliegue
 
+### 0. Manual de Supervivencia: Configuración de Red Local (SQL Server)
+
+Si al intentar levantar la aplicación Java el backend se queda congelado o arroja un error de tipo `SocketTimeoutException` o `Connection refused`, significa que el motor de SQL Server local tiene el protocolo de red TCP/IP desactivado por defecto. 
+
+Para habilitarlo y dejar el entorno listo en 2 minutos, siga este paso a paso estricto en su máquina:
+
+1. **Abrir la consola de administración:** Presione las teclas `Windows + R`, escriba `compmgmt.msc` *(Administración de equipos)* y presione **Enter**.
+2. **Localizar los protocolos:** En la columna izquierda, navegue hasta el fondo en **Servicios y Aplicaciones** ➔ Despliegue **Configuración de red de SQL Server** (SQL Server Configuration Manager) ➔ Haga clic en **Protocolos de SQLEXPRESS** *(SQL Server Network Configuration)*.
+3. **Habilitar TCP/IP:** En el panel central derecho, haga doble clic sobre el protocolo **TCP/IP**:
+   * En la pestaña **Protocolo**: Cambie la opción **Habilitado** a **Sí** (En caso de estar en ingles **Enabled** y cambiar a **yes**).
+   * En la pestaña **Direcciones IP**: Baje con el scroll hasta el fondo de todo (sección **IPAll**). Borre cualquier número que figure en *Puertos dinámicos TCP (TCP Dynamic Ports)* (debe quedar completamente vacío) y en el campo **Puerto TCP** escriba rigurosamente `1433`.
+   * Haga clic en **Aplicar** y **Aceptar**.
+4. **Reiniciar el Motor:** En la misma columna izquierda de la ventana, suba hasta el nodo **Servicios**, busque el servicio principal llamado **SQL Server (SQLEXPRESS)** *(o su instancia correspondiente)*, haga clic derecho sobre él y seleccione **Reiniciar**.
+
+
 ### 1. Requisito Previo (Base de Datos)
 Antes de iniciar la aplicación, asegúrese de haber ejecutado la totalidad de los scripts de creación, lógica y carga de datos en el orden estricto especificado en el **README principal** de la raíz del repositorio. 
 
