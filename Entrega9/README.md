@@ -10,7 +10,7 @@ Para cumplir con los requerimientos de la **Novena Entrega**, desarrollamos una 
 
 ## Instrucciones de Configuración y Despliegue
 
-### 0. Manual de Supervivencia: Configuración de Red Local (SQL Server)
+### 0. Configuración de Red Local (SQL Server)
 
 Si al intentar levantar la aplicación Java el backend se queda congelado o arroja un error de tipo `SocketTimeoutException` o `Connection refused`, significa que el motor de SQL Server local tiene el protocolo de red TCP/IP desactivado por defecto. 
 
