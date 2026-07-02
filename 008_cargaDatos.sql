@@ -1,4 +1,4 @@
-﻿-- ============================================================
+-- ============================================================
 -- Fecha: 2025-06-25
 -- Descripción: Creación de script de carga de datos.
 -- ============================================================
@@ -345,6 +345,12 @@ EXEC Actividades.sp_AltaActividadProgramada @idGuia = @idGuia3, @idActividadTuri
     @fecha = '2026-11-20', @horaInicio = '10:00:00', @observaciones = 'Simultánea 3';
 SELECT @idProg3 = MAX(idActividadProgramada) FROM Actividades.ActividadProgramada WHERE idGuia = @idGuia3 AND idActividadTuristica = @idAct3;
 
+    EXEC Actividades.sp_AltaGuiaAutorizacion @idGuia = @idGuia2, @idActividadTuristica = @idAct5;
+
+    EXEC Actividades.sp_AltaActividadProgramada @idGuia = @idGuia2, @idActividadTuristica = @idAct5,
+        @fecha = '2026-11-21', @horaInicio = '14:00:00', @observaciones = 'Tour Cupo Completo';
+    SELECT @idProg4 = MAX(idActividadProgramada) FROM Actividades.ActividadProgramada WHERE idGuia = @idGuia2 AND idActividadTuristica = @idAct5;
+
 -- ==========================================================
 -- GENERACION Concesiones
 -- ==========================================================
@@ -539,18 +545,15 @@ EXEC Actividades.sp_AltaContratacion
     @idActividadProgramada = @idProg3, 
     @costo = 48000.00, @estado = 'Completada', @cantidadPersonas = 3;
 
-DECLARE @idProg4_Aux INT;
-SELECT @idProg4_Aux = MAX(idActividadProgramada) FROM Actividades.ActividadProgramada;
+    EXEC Actividades.sp_AltaDetalleContratacion 
+        @idVenta = @idVenta5, @costoTotal = 62000.00;
+    SELECT @idDetCont4 = MAX(idDetalleContratacion) 
+        FROM Actividades.DetalleContratacion WHERE idVenta = @idVenta5;
 
-EXEC Actividades.sp_AltaDetalleContratacion 
-    @idVenta = @idVenta5, @costoTotal = 62000.00;
-SELECT @idDetCont4 = MAX(idDetalleContratacion) 
-    FROM Actividades.DetalleContratacion WHERE idVenta = @idVenta5;
-
-EXEC Actividades.sp_AltaContratacion 
-    @idDetalleContratacion = @idDetCont4,
-    @idActividadProgramada = @idProg4_Aux, 
-    @costo = 62000.00, @estado = 'Completada', @cantidadPersonas = 4;
+    EXEC Actividades.sp_AltaContratacion 
+        @idDetalleContratacion = @idDetCont4,
+        @idActividadProgramada = @idProg4, 
+        @costo = 62000.00, @estado = 'Completada', @cantidadPersonas = 4;
 
 EXEC Actividades.sp_AltaDetalleContratacion 
     @idVenta = @idVenta2, @costoTotal = 27000.00;
