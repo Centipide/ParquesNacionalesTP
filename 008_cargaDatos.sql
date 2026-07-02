@@ -41,6 +41,17 @@ DECLARE @idProg1 INT, @idProg2 INT, @idProg3 INT, @idProg4 INT
 
 DECLARE @idDetCont1 INT, @idDetCont2 INT
 
+DECLARE @idVentaHist1 INT, @idVentaHist2 INT, @idVentaHist3 INT, @idVentaHist4 INT, @idVentaHist5 INT
+
+DECLARE @idDetContHist1 INT, @idDetContHist2 INT, @idDetContHist3 INT
+
+DECLARE @idProgHist1 INT, @idProgHist2 INT
+
+DECLARE @idVentaFeriado1 INT, 
+        @idVentaFeriado2 INT, 
+        @idVentaFeriado3 INT, 
+        @idVentaFeriado4 INT, 
+        @idVentaFeriado5 INT;
 
 -- ==========================================================
 -- GENERACION Parques
@@ -351,6 +362,17 @@ SELECT @idProg3 = MAX(idActividadProgramada) FROM Actividades.ActividadProgramad
         @fecha = '2026-11-21', @horaInicio = '14:00:00', @observaciones = 'Tour Cupo Completo';
     SELECT @idProg4 = MAX(idActividadProgramada) FROM Actividades.ActividadProgramada WHERE idGuia = @idGuia2 AND idActividadTuristica = @idAct5;
 
+EXEC Actividades.sp_AltaActividadProgramada @idGuia = @idGuia1, @idActividadTuristica = @idAct1,
+    @fecha = '2024-10-12', @horaInicio = '09:00:00', @observaciones = 'Temporada Alta 2024'
+SELECT @idProgHist1 = MAX(idActividadProgramada) FROM Actividades.ActividadProgramada WHERE idGuia = @idGuia1 AND idActividadTuristica = @idAct1;
+
+EXEC Actividades.sp_AltaActividadProgramada @idGuia = @idGuia4, @idActividadTuristica = @idAct6,
+    @fecha = '2025-07-18', @horaInicio = '11:00:00', @observaciones = 'Vacaciones de Invierno 2025'
+SELECT @idProgHist2 = MAX(idActividadProgramada) FROM Actividades.ActividadProgramada WHERE idGuia = @idGuia4 AND idActividadTuristica = @idAct6;
+
+EXEC Actividades.sp_AltaActividadProgramada @idGuia = @idGuia2, @idActividadTuristica = @idAct2,
+    @fecha = '2027-01-20', @horaInicio = '08:30:00', @observaciones = 'Reserva Anticipada Verano 2027';
+
 -- ==========================================================
 -- GENERACION Concesiones
 -- ==========================================================
@@ -496,6 +518,52 @@ EXEC Ventas.sp_AltaVenta @idVisitante = @idVis5, @formaPago = 'Tarjeta',
     @puntoVenta = 'Portal Nahuel Huapi', @total = 8000.00
 SELECT @idVenta5 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis5
 
+EXEC Ventas.sp_AltaVenta @idVisitante = @idVis2, @formaPago = 'Transferencia',
+    @puntoVenta = 'Boletería Online', @total = 20000.00
+SELECT @idVentaHist4 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis2
+
+EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaHist4, @idEntrada = @idEnt2,
+    @cantidad = 2, @precioUnitario = 10000.00, @fechaAcceso = '2027-01-20'
+
+EXEC Ventas.sp_AltaVenta @idVisitante = @idVis4, @formaPago = 'Tarjeta',
+    @puntoVenta = 'Portal Iguazú', @total = 10000.00
+SELECT @idVentaHist5 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis4
+
+EXEC Ventas.sp_AltaVenta @idVisitante = @idVis3, @formaPago = 'Digital',
+    @puntoVenta = 'Boletería Online', @total = 25000.00
+SELECT @idVentaHist2 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis3
+
+EXEC Ventas.sp_AltaVenta @idVisitante = @idVis4, @formaPago = 'Efectivo',
+    @puntoVenta = 'Portal Iguazú', @total = 15000.00
+SELECT @idVentaHist3 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis4
+
+EXEC Ventas.sp_AltaVenta @idVisitante = @idVis1, @formaPago = 'Tarjeta',
+    @puntoVenta = 'Boletería Online', @total = 40000.00;
+SELECT @idVentaFeriado1 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis1;
+
+EXEC Ventas.sp_AltaVenta @idVisitante = @idVis2, @formaPago = 'Efectivo',
+    @puntoVenta = 'Portal Glaciares', @total = 30000.00;
+SELECT @idVentaFeriado2 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis2;
+
+EXEC Ventas.sp_AltaVenta @idVisitante = @idVis3, @formaPago = 'Digital',
+    @puntoVenta = 'Boletería Online', @total = 50000.00;
+SELECT @idVentaFeriado3 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis3;
+
+EXEC Ventas.sp_AltaVenta @idVisitante = @idVis4, @formaPago = 'Transferencia',
+    @puntoVenta = 'Portal Iguazú', @total = 20000.00;
+SELECT @idVentaFeriado4 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis4;
+
+EXEC Ventas.sp_AltaVenta @idVisitante = @idVis5, @formaPago = 'Tarjeta',
+    @puntoVenta = 'Portal Nahuel Huapi', @total = 16000.00;
+SELECT @idVentaFeriado5 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis5;
+
+EXEC Ventas.sp_AltaVenta @idVisitante = @idVis1, @formaPago = 'Tarjeta',
+    @puntoVenta = 'Portal Glaciares', @total = 40000.00
+SELECT @idVentaHist1 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis1
+
+
+EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaHist5, @idEntrada = @idEnt4,
+    @cantidad = 2, @precioUnitario = 5000.00, @fechaAcceso = '2027-03-05'
 
 EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVenta1, @idEntrada = @idEnt1,
     @cantidad = 2, @precioUnitario = 20000.00, @fechaAcceso = '2026-01-15'
@@ -515,6 +583,29 @@ EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVenta4, @idEntrada = @idEnt4,
 EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVenta5, @idEntrada = @idEnt5,
     @cantidad = 1, @precioUnitario = 8000.00,  @fechaAcceso = '2026-05-15'
 
+EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaHist2, @idEntrada = @idEnt3,
+    @cantidad = 1, @precioUnitario = 25000.00, @fechaAcceso = '2025-07-18'
+
+EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaHist3, @idEntrada = @idEnt4,
+    @cantidad = 3, @precioUnitario = 5000.00, @fechaAcceso = '2025-10-12'
+
+EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaFeriado1, @idEntrada = @idEnt1,
+    @cantidad = 2, @precioUnitario = 20000.00, @fechaAcceso = '2026-02-16';
+
+EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaFeriado2, @idEntrada = @idEnt2,
+    @cantidad = 3, @precioUnitario = 10000.00, @fechaAcceso = '2026-03-24';
+
+EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaFeriado3, @idEntrada = @idEnt3,
+    @cantidad = 2, @precioUnitario = 25000.00, @fechaAcceso = '2026-05-01';
+
+EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaFeriado4, @idEntrada = @idEnt4,
+    @cantidad = 4, @precioUnitario = 5000.00,  @fechaAcceso = '2026-07-09';
+
+EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaFeriado5, @idEntrada = @idEnt5,
+    @cantidad = 2, @precioUnitario = 8000.00,  @fechaAcceso = '2026-12-25';
+
+EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaHist1, @idEntrada = @idEnt1,
+    @cantidad = 2, @precioUnitario = 20000.00, @fechaAcceso = '2024-10-12'
 
 -- ==========================================================
 -- GENERACION Contrataciones
@@ -564,6 +655,18 @@ EXEC Actividades.sp_AltaContratacion
     @idDetalleContratacion = @idDetCont5,
     @idActividadProgramada = @idProg1, 
     @costo = 27000.00, @estado = 'Completada', @cantidadPersonas = 1;
+
+EXEC Actividades.sp_AltaDetalleContratacion @idVenta = @idVentaHist1, @costoTotal = 90000.00
+SELECT @idDetContHist1 = MAX(idDetalleContratacion) FROM Actividades.DetalleContratacion WHERE idVenta = @idVentaHist1
+
+EXEC Actividades.sp_AltaContratacion @idDetalleContratacion = @idDetContHist1,
+    @idActividadProgramada = @idProgHist1, @costo = 45000.00, @estado = 'Completada', @cantidadPersonas = 2
+
+EXEC Actividades.sp_AltaDetalleContratacion @idVenta = @idVentaHist2, @costoTotal = 22000.00
+SELECT @idDetContHist2 = MAX(idDetalleContratacion) FROM Actividades.DetalleContratacion WHERE idVenta = @idVentaHist2
+
+EXEC Actividades.sp_AltaContratacion @idDetalleContratacion = @idDetContHist2,
+    @idActividadProgramada = @idProgHist2, @costo = 22000.00, @estado = 'Completada', @cantidadPersonas = 1
 
 -- ==========================================================
 -- PAGOS DE CANON
@@ -621,52 +724,21 @@ EXEC Concesiones.sp_AltaPagoCanon
     @idConcesion = @idConc5, @fechaPago = '2026-05-05',
     @monto = 350000.00, @fechaVencimiento = '2026-05-31', @fechaEmision = '2026-05-01';
 
--- Visitas dias feriados
-DECLARE @idVentaFeriado1 INT, 
-        @idVentaFeriado2 INT, 
-        @idVentaFeriado3 INT, 
-        @idVentaFeriado4 INT, 
-        @idVentaFeriado5 INT;
+EXEC Concesiones.sp_AltaPagoCanon 
+    @idConcesion = @idConc1, @fechaPago = '2024-06-15',
+    @monto = 150000.00, @fechaVencimiento = '2024-06-30', @fechaEmision = '2024-06-01'; -- Concesión vieja vencida
 
--- 1. Feriado de Carnaval (16 de febrero de 2026)
-EXEC Ventas.sp_AltaVenta @idVisitante = @idVis1, @formaPago = 'Tarjeta',
-    @puntoVenta = 'Boletería Online', @total = 40000.00;
-SELECT @idVentaFeriado1 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis1;
+EXEC Concesiones.sp_AltaPagoCanon 
+    @idConcesion = @idConc3, @fechaPago = '2024-11-10',
+    @monto = 800000.00, @fechaVencimiento = '2024-11-30', @fechaEmision = '2024-11-01';
 
-EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaFeriado1, @idEntrada = @idEnt1,
-    @cantidad = 2, @precioUnitario = 20000.00, @fechaAcceso = '2026-02-16';
+EXEC Concesiones.sp_AltaPagoCanon 
+    @idConcesion = @idConc2, @fechaPago = '2025-10-12',
+    @monto = 450000.00, @fechaVencimiento = '2025-10-31', @fechaEmision = '2025-10-01';
 
--- 2. Día Nacional de la Memoria (24 de marzo de 2026)
-EXEC Ventas.sp_AltaVenta @idVisitante = @idVis2, @formaPago = 'Efectivo',
-    @puntoVenta = 'Portal Glaciares', @total = 30000.00;
-SELECT @idVentaFeriado2 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis2;
-
-EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaFeriado2, @idEntrada = @idEnt2,
-    @cantidad = 3, @precioUnitario = 10000.00, @fechaAcceso = '2026-03-24';
-
--- 3. Día del Trabajador (1 de mayo de 2026)
-EXEC Ventas.sp_AltaVenta @idVisitante = @idVis3, @formaPago = 'Digital',
-    @puntoVenta = 'Boletería Online', @total = 50000.00;
-SELECT @idVentaFeriado3 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis3;
-
-EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaFeriado3, @idEntrada = @idEnt3,
-    @cantidad = 2, @precioUnitario = 25000.00, @fechaAcceso = '2026-05-01';
-
--- 4. Día de la Independencia (9 de julio de 2026)
-EXEC Ventas.sp_AltaVenta @idVisitante = @idVis4, @formaPago = 'Transferencia',
-    @puntoVenta = 'Portal Iguazú', @total = 20000.00;
-SELECT @idVentaFeriado4 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis4;
-
-EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaFeriado4, @idEntrada = @idEnt4,
-    @cantidad = 4, @precioUnitario = 5000.00,  @fechaAcceso = '2026-07-09';
-
--- 5. Navidad (25 de diciembre de 2026)
-EXEC Ventas.sp_AltaVenta @idVisitante = @idVis5, @formaPago = 'Tarjeta',
-    @puntoVenta = 'Portal Nahuel Huapi', @total = 16000.00;
-SELECT @idVentaFeriado5 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis5;
-
-EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaFeriado5, @idEntrada = @idEnt5,
-    @cantidad = 2, @precioUnitario = 8000.00,  @fechaAcceso = '2026-12-25';
+EXEC Concesiones.sp_AltaPagoCanon 
+    @idConcesion = @idConc5, @fechaPago = '2025-12-05',
+    @monto = 350000.00, @fechaVencimiento = '2025-12-31', @fechaEmision = '2025-12-01';
 
 -- ==========================================================
 -- DEMOSTRACION
