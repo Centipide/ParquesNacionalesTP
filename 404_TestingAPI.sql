@@ -18,9 +18,9 @@ USE ParquesNacionales
 GO
 
 EXEC Apis.sp_ImportarDolarOficial
-
 SELECT * FROM Apis.CotizacionDolar
 
+EXEC Reportes.sp_IngresosPorPeriodo
 
 -- ============================================================
 -- API para importar feriados
@@ -29,5 +29,6 @@ USE ParquesNacionales
 GO
 
 EXEC Apis.sp_ImportarFeriados
-
 SELECT * FROM Apis.Feriados
+
+EXEC Reportes.sp_VisitasEnFeriados

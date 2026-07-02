@@ -618,6 +618,53 @@ EXEC Concesiones.sp_AltaPagoCanon
     @idConcesion = @idConc5, @fechaPago = '2026-05-05',
     @monto = 350000.00, @fechaVencimiento = '2026-05-31', @fechaEmision = '2026-05-01';
 
+-- Visitas dias feriados
+DECLARE @idVentaFeriado1 INT, 
+        @idVentaFeriado2 INT, 
+        @idVentaFeriado3 INT, 
+        @idVentaFeriado4 INT, 
+        @idVentaFeriado5 INT;
+
+-- 1. Feriado de Carnaval (16 de febrero de 2026)
+EXEC Ventas.sp_AltaVenta @idVisitante = @idVis1, @formaPago = 'Tarjeta',
+    @puntoVenta = 'Boletería Online', @total = 40000.00;
+SELECT @idVentaFeriado1 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis1;
+
+EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaFeriado1, @idEntrada = @idEnt1,
+    @cantidad = 2, @precioUnitario = 20000.00, @fechaAcceso = '2026-02-16';
+
+-- 2. Día Nacional de la Memoria (24 de marzo de 2026)
+EXEC Ventas.sp_AltaVenta @idVisitante = @idVis2, @formaPago = 'Efectivo',
+    @puntoVenta = 'Portal Glaciares', @total = 30000.00;
+SELECT @idVentaFeriado2 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis2;
+
+EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaFeriado2, @idEntrada = @idEnt2,
+    @cantidad = 3, @precioUnitario = 10000.00, @fechaAcceso = '2026-03-24';
+
+-- 3. Día del Trabajador (1 de mayo de 2026)
+EXEC Ventas.sp_AltaVenta @idVisitante = @idVis3, @formaPago = 'Digital',
+    @puntoVenta = 'Boletería Online', @total = 50000.00;
+SELECT @idVentaFeriado3 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis3;
+
+EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaFeriado3, @idEntrada = @idEnt3,
+    @cantidad = 2, @precioUnitario = 25000.00, @fechaAcceso = '2026-05-01';
+
+-- 4. Día de la Independencia (9 de julio de 2026)
+EXEC Ventas.sp_AltaVenta @idVisitante = @idVis4, @formaPago = 'Transferencia',
+    @puntoVenta = 'Portal Iguazú', @total = 20000.00;
+SELECT @idVentaFeriado4 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis4;
+
+EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaFeriado4, @idEntrada = @idEnt4,
+    @cantidad = 4, @precioUnitario = 5000.00,  @fechaAcceso = '2026-07-09';
+
+-- 5. Navidad (25 de diciembre de 2026)
+EXEC Ventas.sp_AltaVenta @idVisitante = @idVis5, @formaPago = 'Tarjeta',
+    @puntoVenta = 'Portal Nahuel Huapi', @total = 16000.00;
+SELECT @idVentaFeriado5 = MAX(idVenta) FROM Ventas.Venta WHERE idVisitante = @idVis5;
+
+EXEC Ventas.sp_AltaDetalleVenta @idVenta = @idVentaFeriado5, @idEntrada = @idEnt5,
+    @cantidad = 2, @precioUnitario = 8000.00,  @fechaAcceso = '2026-12-25';
+
 -- ==========================================================
 -- DEMOSTRACION
 -- ==========================================================
