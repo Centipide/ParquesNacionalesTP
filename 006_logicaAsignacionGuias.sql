@@ -22,7 +22,6 @@ CREATE OR ALTER PROCEDURE Guias.sp_AsignacionGuia
 AS
 BEGIN
     SET NOCOUNT ON
-    BEGIN TRANSACTION
 
     DECLARE @errores    VARCHAR(500) ='';
     DECLARE @vigencia   DATE;
@@ -72,10 +71,11 @@ BEGIN
 
     IF @errores != ''
     BEGIN
-        ROLLBACK TRANSACTION;
         RAISERROR(@errores,16,1);
         RETURN;
     END
+
+    BEGIN TRANSACTION
 
     INSERT INTO Actividades.ActividadProgramada
         (idGuia, idActividadTuristica, fecha, horaInicio, observaciones)

@@ -27,7 +27,7 @@ IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'rol_GestionGuias'
     DROP ROLE rol_GestionGuias;
 
 IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'rol_Personal')
-    DROP ROLE rol_GestionGuias;
+    DROP ROLE rol_Personal;
 
 IF EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'rol_Importador')
     DROP ROLE rol_Importador;

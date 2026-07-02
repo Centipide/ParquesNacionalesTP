@@ -1,7 +1,14 @@
--- ============================================================
--- Fecha: 2025-06-15
--- Descripción: Creación de la logica de negocia para Registro
+-- ========================================================================
+-- UNIVERSIDAD NACIONAL DE LA MATANZA
+-- Asignatura: 3641 - Bases de Datos Aplicada
+-- Objetivo del Código: Creación de la logica de negocia para Registro
 --              de Actividades
+-- ========================================================================
+--  INTEGRANTES
+--  Ayala Bustos, Gustavo Gabriel
+--  Bonfigli, Leonardo
+--  Casale Benavente, Pedro Santino
+--  Martinez Souto, Joaquin
 -- ============================================================
 
 

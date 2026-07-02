@@ -23,7 +23,7 @@ public class VisitanteService {
     private static final String CLAVE_HISTORICA = "claveVisitantes";
 
     /**
-     * 1. LISTAR VISITANTES
+     * 1. LISTAR VISITANTES (Soporte Multi-Clave con Fallback)
      */
     @SuppressWarnings("unchecked")
     public List<Visitante> listar() {
@@ -125,28 +125,58 @@ public class VisitanteService {
      */
     @Transactional
     public void guardar(Visitante v) {
-        String checkParam = "SELECT 1 FROM sys.parameters WHERE object_id = OBJECT_ID('Ventas.sp_AltaVisitante') AND name = '@FraseClave'";
-        boolean spPideFrase = !entityManager.createNativeQuery(checkParam).getResultList().isEmpty();
-        
-        if (spPideFrase) {
-            entityManager.createNativeQuery(
-                "EXEC Ventas.sp_AltaVisitante @nombre = :nom, @apellido = :ape, @email = :em, @direccion = :dir, @telefono = :tel, @FraseClave = :frase")
-                .setParameter("nom", v.getNombre())
-                .setParameter("ape", v.getApellido())
-                .setParameter("em", v.getEmail())
-                .setParameter("dir", v.getDireccion())
-                .setParameter("tel", v.getTelefono())
-                .setParameter("frase", CLAVE_NUEVA)
-                .executeUpdate();
+        if (v.getIdVisitante() == null) {
+            // --- ALTA ---
+            String checkParam = "SELECT 1 FROM sys.parameters WHERE object_id = OBJECT_ID('Ventas.sp_AltaVisitante') AND name = '@FraseClave'";
+            boolean spPideFrase = !entityManager.createNativeQuery(checkParam).getResultList().isEmpty();
+            
+            if (spPideFrase) {
+                entityManager.createNativeQuery(
+                    "EXEC Ventas.sp_AltaVisitante @nombre = :nom, @apellido = :ape, @email = :em, @direccion = :dir, @telefono = :tel, @FraseClave = :frase")
+                    .setParameter("nom", v.getNombre())
+                    .setParameter("ape", v.getApellido())
+                    .setParameter("em", v.getEmail())
+                    .setParameter("dir", v.getDireccion())
+                    .setParameter("tel", v.getTelefono())
+                    .setParameter("frase", CLAVE_NUEVA)
+                    .executeUpdate();
+            } else {
+                entityManager.createNativeQuery(
+                    "EXEC Ventas.sp_AltaVisitante @nombre = :nom, @apellido = :ape, @email = :em, @direccion = :dir, @telefono = :tel")
+                    .setParameter("nom", v.getNombre())
+                    .setParameter("ape", v.getApellido())
+                    .setParameter("em", v.getEmail())
+                    .setParameter("dir", v.getDireccion())
+                    .setParameter("tel", v.getTelefono())
+                    .executeUpdate();
+            }
         } else {
-            entityManager.createNativeQuery(
-                "EXEC Ventas.sp_AltaVisitante @nombre = :nom, @apellido = :ape, @email = :em, @direccion = :dir, @telefono = :tel")
-                .setParameter("nom", v.getNombre())
-                .setParameter("ape", v.getApellido())
-                .setParameter("em", v.getEmail())
-                .setParameter("dir", v.getDireccion())
-                .setParameter("tel", v.getTelefono())
-                .getResultList(); 
+            // --- MODIFICACIÓN ---
+            String checkParam = "SELECT 1 FROM sys.parameters WHERE object_id = OBJECT_ID('Ventas.sp_ModificacionVisitante') AND name = '@FraseClave'";
+            boolean spPideFrase = !entityManager.createNativeQuery(checkParam).getResultList().isEmpty();
+            
+            if (spPideFrase) {
+                entityManager.createNativeQuery(
+                    "EXEC Ventas.sp_ModificacionVisitante @idVisitante = :id, @nombre = :nom, @apellido = :ape, @email = :em, @direccion = :dir, @telefono = :tel, @FraseClave = :frase")
+                    .setParameter("id", v.getIdVisitante())
+                    .setParameter("nom", v.getNombre())
+                    .setParameter("ape", v.getApellido())
+                    .setParameter("em", v.getEmail())
+                    .setParameter("dir", v.getDireccion())
+                    .setParameter("tel", v.getTelefono())
+                    .setParameter("frase", CLAVE_NUEVA)
+                    .executeUpdate();
+            } else {
+                entityManager.createNativeQuery(
+                    "EXEC Ventas.sp_ModificacionVisitante @idVisitante = :id, @nombre = :nom, @apellido = :ape, @email = :em, @direccion = :dir, @telefono = :tel")
+                    .setParameter("id", v.getIdVisitante())
+                    .setParameter("nom", v.getNombre())
+                    .setParameter("ape", v.getApellido())
+                    .setParameter("em", v.getEmail())
+                    .setParameter("dir", v.getDireccion())
+                    .setParameter("tel", v.getTelefono())
+                    .executeUpdate();
+            }
         }
     }
 
@@ -164,7 +194,7 @@ public class VisitanteService {
     public String obtenerMatrizVisitasXml() {
         try {
             return (String) entityManager.createNativeQuery(
-                "EXEC Reportes.sp_TestingReporteMatrizVisitas") 
+                "EXEC Reportes.sp_MatrizVisitasXML") 
                 .getSingleResult();
         } catch (Exception e) {
             return "<error>No se pudo generar la matriz XML</error>";

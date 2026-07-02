@@ -27,6 +27,10 @@ BEGIN
     FROM APIs.CotizacionDolar
     ORDER BY fechaCotizacion DESC
 
+    -- Evitar división por cero si la tabla de cotizaciones está vacía:
+    IF ISNULL(@CotizacionDolar, 0) = 0
+    SET @CotizacionDolar = 1.00;
+    
     -- ========================================================================
     -- DESGLOSE CRONOLÓGICO POR MES
     -- ========================================================================
@@ -106,7 +110,7 @@ BEGIN
         CAST(SUM(CASE WHEN tipo = 'Entrada' THEN monto ELSE 0.00 END) / @CotizacionDolar AS DECIMAL(18,2)) AS totalEntradas_USD,
         CAST(SUM(CASE WHEN tipo = 'Tour' THEN monto ELSE 0.00 END) / @CotizacionDolar AS DECIMAL(18,2)) AS totalTours_USD,
         CAST(SUM(CASE WHEN tipo = 'Canon' THEN monto ELSE 0.00 END) / @CotizacionDolar AS DECIMAL(18,2)) AS totalCanones_USD,
-        CAST(SUM(monto) AS DECIMAL(18,2)) AS totalGeneral_USD,
+        CAST(SUM(monto) / @CotizacionDolar AS DECIMAL(18,2)) AS totalGeneral_USD,
         @CotizacionDolar AS tipoCambioAplicado
     FROM IngresosBase ib
     JOIN Parques.Parque p ON ib.idParque = p.idParque

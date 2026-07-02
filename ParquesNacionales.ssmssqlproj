@@ -156,6 +156,30 @@
           <AssociatedConnUserName />
           <FullPath>306_testingImportacionDatos.sql</FullPath>
         </FileNode>
+        <FileNode Name="401_LogicaAPI.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>401_LogicaAPI.sql</FullPath>
+        </FileNode>
+        <FileNode Name="402_LogicaReporteIngresosAPI.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>402_LogicaReporteIngresosAPI.sql</FullPath>
+        </FileNode>
+        <FileNode Name="403_LogicaVisitasFeriados.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>403_LogicaVisitasFeriados.sql</FullPath>
+        </FileNode>
+        <FileNode Name="404_TestingAPI.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>404_TestingAPI.sql</FullPath>
+        </FileNode>
       </Items>
     </LogicalFolder>
     <LogicalFolder Name="Varios" Type="3" Sorted="true">
