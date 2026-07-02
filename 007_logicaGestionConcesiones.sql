@@ -1,4 +1,4 @@
-﻿-- ========================================================================
+-- ========================================================================
 --  UNIVERSIDAD NACIONAL DE LA MATANZA
 --  Departamento de Ingeniería e Investigaciones Tecnológicas
 --  Asignatura: 3641 - Bases de Datos Aplicada
@@ -94,5 +94,35 @@ BEGIN
             ROLLBACK TRANSACTION;
         THROW;
     END CATCH
+END;
+GO
+
+-- ========================================================================
+-- 3. PROCESO: CONSULTA DE CONCESIONES PRÓXIMAS A VENCER
+-- ========================================================================
+CREATE OR ALTER PROCEDURE Concesiones.sp_ConcesionesProximasAVencer
+    @diasParaVencimiento INT = 90
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        c.idConcesion,
+        e.razonSocial AS empresa_concesionaria,
+        p.nombre AS parque_nacional,
+        tac.nombre AS tipo_actividad,
+        c.fechaInicio AS fecha_inicio_contrato,
+        c.fechaFin AS fecha_vencimiento_contrato,
+        DATEDIFF(day, GETDATE(), c.fechaFin) AS dias_para_vencer,
+        c.montoAlquiler AS canon_alquiler,
+        c.estado
+    FROM Concesiones.Concesion c
+    JOIN Concesiones.EmpresaConcesionaria e ON c.idEmpresaConcesionaria = e.idEmpresaConcesionaria
+    JOIN Concesiones.TipoActividadConcesion tac ON c.idTipoActividadConcesion = tac.idTipoActividadConcesion
+    JOIN Parques.Parque p ON c.idParque = p.idParque
+    WHERE c.estado = 'Activa'
+      AND c.fechaFin >= GETDATE()
+      AND c.fechaFin <= DATEADD(day, @diasParaVencimiento, GETDATE())
+    ORDER BY c.fechaFin ASC;
 END;
 GO
