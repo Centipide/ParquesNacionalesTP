@@ -13,43 +13,63 @@ USE ParquesNacionales
 GO
 
 CREATE OR ALTER PROCEDURE Reportes.sp_VisitasEnFeriados
-    @idParque INT = NULL,
     @anio     INT = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    DECLARE @anioFiltro INT = COALESCE(@anio, YEAR(GETDATE()));
+    IF @anio IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM Apis.Feriados
+        WHERE YEAR(fecha) = @anio
+    )
+    BEGIN
+        PRINT 'Feriados no encontrados.'
+        RETURN
+    END
 
-    BEGIN TRY
-        EXEC Apis.sp_ImportarFeriados @anio = @anioFiltro;
-    END TRY
-    BEGIN CATCH
-        PRINT 'No se pudo actualizar la API de feriados. Se usará la información disponible.';
-    END CATCH;
-
+    -- El resultado final se empaqueta en una raíz llamada <ReporteVisitasFeriados>
     SELECT 
-        p.idParque,
-        p.nombre AS parque,
-        f.fecha AS fechaFeriado,
-        f.nombre AS nombreFeriado,
-        f.tipo AS tipoFeriado,
-        ISNULL(SUM(dv.cantidad), 0) AS totalVisitas
-    FROM Apis.Feriados f
-    LEFT JOIN Ventas.DetalleVenta dv ON CAST(dv.fechaAcceso AS DATE) = f.fecha
-    LEFT JOIN Ventas.Entrada e ON e.idEntrada = dv.idEntrada AND (@idParque IS NULL OR e.idParque = @idParque)
-    LEFT JOIN Parques.Parque p ON p.idParque = e.idParque
-    WHERE 
-        YEAR(f.fecha) = @anioFiltro
-        AND (@idParque IS NULL OR p.idParque = @idParque)
-    GROUP BY 
-        p.idParque, 
-        p.nombre, 
-        f.fecha, 
-        f.nombre, 
-        f.tipo
-    ORDER BY 
-        f.fecha ASC, 
-        totalVisitas DESC;
+        p.idParque AS [@IdParque],
+        p.nombre   AS [@NombreParque],
+        
+        -- Subconsulta 1: Obtener el total consolidado del parque en feriados
+        (
+            SELECT SUM(dv_tot.cantidad)
+            FROM Ventas.DetalleVenta dv_tot
+            JOIN Ventas.Entrada e_tot ON e_tot.idEntrada = dv_tot.idEntrada
+            JOIN Apis.Feriados f_tot ON CAST(dv_tot.fechaAcceso AS DATE) = f_tot.fecha
+            WHERE e_tot.idParque = p.idParque
+              AND (@anio IS NULL OR YEAR(dv_tot.fechaAcceso) = @anio)
+        ) AS [TotalVisitasFeriados],
+
+        -- Subconsulta 2: Detalle interno nodo por nodo de cada feriado
+        (
+            SELECT 
+                f.fecha   AS [@Fecha],
+                f.nombre  AS [@NombreFeriado],
+                f.tipo    AS [@TipoFeriado],
+                SUM(dv_det.cantidad) AS [CantidadVisitas]
+            FROM Ventas.DetalleVenta dv_det
+            JOIN Ventas.Entrada e_det ON e_det.idEntrada = dv_det.idEntrada
+            JOIN Apis.Feriados f ON CAST(dv_det.fechaAcceso AS DATE) = f.fecha
+            WHERE e_det.idParque = p.idParque
+              AND (@anio IS NULL OR YEAR(dv_det.fechaAcceso) = @anio)
+            GROUP BY f.fecha, f.nombre, f.tipo
+            ORDER BY f.fecha ASC
+            FOR XML PATH('Feriado'), TYPE
+        ) AS [DesgloseFeriados]
+
+    FROM Parques.Parque p
+    WHERE EXISTS (
+        -- Filtramos para mostrar únicamente los parques que registran visitas en feriados
+        SELECT 1 
+        FROM Ventas.DetalleVenta dv_chk
+        JOIN Ventas.Entrada e_chk ON e_chk.idEntrada = dv_chk.idEntrada
+        JOIN Apis.Feriados f_chk ON CAST(dv_chk.fechaAcceso AS DATE) = f_chk.fecha
+        WHERE e_chk.idParque = p.idParque
+          AND (@anio IS NULL OR YEAR(dv_chk.fechaAcceso) = @anio)
+    )
+    ORDER BY p.nombre
+    FOR XML PATH('Parque'), ROOT('ReporteVisitasFeriados');
 END
 GO
