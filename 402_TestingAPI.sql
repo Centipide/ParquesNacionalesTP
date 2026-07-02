@@ -14,6 +14,20 @@
 -- ============================================================
 -- API para la cotizacion del dolar oficial
 -- ============================================================
+USE ParquesNacionales
+GO
+
 EXEC Apis.sp_ImportarDolarOficial
 
 SELECT * FROM Apis.CotizacionDolar
+
+
+-- ============================================================
+-- API para importar feriados
+-- ============================================================
+USE ParquesNacionales
+GO
+
+EXEC Apis.sp_ImportarFeriados
+
+SELECT * FROM Apis.Feriados

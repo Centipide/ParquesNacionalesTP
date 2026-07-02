@@ -96,3 +96,88 @@ BEGIN
     END
 END
 GO
+
+
+-- ============================================================
+-- API para traer los feriados en Argentina
+-- https://argentinadatos.com/docs/operations/get-feriados
+-- ============================================================
+USE ParquesNacionales
+GO
+
+DROP TABLE IF EXISTS Apis.Feriados
+CREATE TABLE Apis.Feriados (
+    fecha  DATE PRIMARY KEY,
+    tipo   VARCHAR(100),
+    nombre VARCHAR(250)
+)
+GO
+
+CREATE OR ALTER PROCEDURE Apis.sp_ImportarFeriados
+    @anio INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    IF @anio IS NULL
+    SET @anio = YEAR(GETDATE())
+
+    DECLARE @url          VARCHAR(8000) = 'https://api.argentinadatos.com/v1/feriados/' + CAST(@anio AS VARCHAR(4))
+    DECLARE @object       INT
+    DECLARE @respuestaTxt VARCHAR(8000)
+    DECLARE @status       INT
+
+    -- Creamos el objeto HTTP
+    EXEC @status = sp_OACreate 'MSXML2.ServerXMLHTTP', @object OUT
+    IF @status <> 0
+    BEGIN
+        PRINT 'Error creando objeto HTTP'
+        RETURN
+    END
+    
+    -- Configuramos y enviamos la peticion
+    EXEC sp_OAMethod @object, 'OPEN', NULL, 'GET', @url, 'FALSE'
+    EXEC sp_OAMethod @object, 'SEND'
+
+    -- Capturamos la respuesta
+    EXEC sp_OAGetProperty @object, 'responseText', @respuestaTxt OUT
+    EXEC sp_OADestroy @object
+
+    -- Procesamos el JSON y hacemos upsert
+    IF @respuestaTxt IS NOT NULL AND ISJSON(@respuestaTxt) = 1
+    BEGIN
+        -- Actualiza si existe
+        UPDATE tar
+        SET
+            tar.tipo = src.tipo,
+            tar.nombre = src.nombre
+        FROM Apis.Feriados tar
+        INNER JOIN OPENJSON(@respuestaTxt)
+        WITH (
+            fecha  DATE         '$.fecha',
+            tipo   VARCHAR(100) '$.tipo',
+            nombre VARCHAR(250) '$.nombre'
+        ) src ON tar.fecha = src.fecha
+
+        -- Inserta si no existe
+        INSERT INTO Apis.Feriados (fecha, tipo, nombre)
+        SELECT src.fecha, src.tipo, src.nombre
+        FROM OPENJSON(@respuestaTxt)
+        WITH (
+            fecha  DATE         '$.fecha',
+            tipo   VARCHAR(100) '$.tipo',
+            nombre VARCHAR(250) '$.nombre'
+        ) src
+        WHERE NOT EXISTS (
+            SELECT 1 FROM Apis.Feriados tar
+            WHERE tar.fecha = src.fecha
+        )
+
+        PRINT 'Feriados de ' + CAST(@anio AS VARCHAR(4)) + ' importados/actualizados correctamente.'
+    END
+    ELSE
+    BEGIN
+        PRINT 'No se obtuvo respuesta de la API.'
+    END
+END
+GO
