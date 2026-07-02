@@ -25,15 +25,6 @@ GO
 USE ParquesNacionales
 GO
 
-DROP TABLE IF EXISTS Apis.CotizacionDolar
-CREATE TABLE Apis.CotizacionDolar (
-    fechaCotizacion    DATE PRIMARY KEY,
-    valorCompra        DECIMAL(18,2),
-    valorVenta         DECIMAL(18,2),
-    fechaActualizacion DATETIME
-)
-GO
-
 CREATE OR ALTER PROCEDURE Apis.sp_ImportarDolarOficial
 AS
 BEGIN
@@ -103,14 +94,6 @@ GO
 -- https://argentinadatos.com/docs/operations/get-feriados
 -- ============================================================
 USE ParquesNacionales
-GO
-
-DROP TABLE IF EXISTS Apis.Feriados
-CREATE TABLE Apis.Feriados (
-    fecha  DATE PRIMARY KEY,
-    tipo   VARCHAR(100),
-    nombre VARCHAR(250)
-)
 GO
 
 CREATE OR ALTER PROCEDURE Apis.sp_ImportarFeriados

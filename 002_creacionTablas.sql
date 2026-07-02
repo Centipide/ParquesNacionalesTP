@@ -355,6 +355,10 @@ CREATE TABLE Ventas.DetalleVenta (
 );
 GO
 
+-- ==========================================================
+-- ESQUEMA Actividades
+-- ==========================================================
+
 CREATE TABLE Actividades.DetalleContratacion (
     idDetalleContratacion INT           IDENTITY(1,1),
     idVenta               INT           NOT NULL,
@@ -392,3 +396,34 @@ CREATE TABLE Actividades.Contratacion (
 );
 GO
 
+-- ==========================================================
+-- ESQUEMA Importacion
+-- ==========================================================
+
+CREATE TABLE Importacion.VisitasParquesNacionales (
+    indiceTiempo     VARCHAR(30),
+    origenVisitantes VARCHAR(30),
+    visitas          INT,
+    observaciones    VARCHAR(500)
+    CONSTRAINT PK_Visitas PRIMARY KEY (indiceTiempo, origenVisitantes)
+)
+GO
+
+-- ==========================================================
+-- ESQUEMA Apis
+-- ==========================================================
+
+CREATE TABLE Apis.CotizacionDolar (
+    fechaCotizacion    DATE PRIMARY KEY,
+    valorCompra        DECIMAL(18,2),
+    valorVenta         DECIMAL(18,2),
+    fechaActualizacion DATETIME
+)
+GO
+
+CREATE TABLE Apis.Feriados (
+    fecha  DATE PRIMARY KEY,
+    tipo   VARCHAR(100),
+    nombre VARCHAR(250)
+)
+GO

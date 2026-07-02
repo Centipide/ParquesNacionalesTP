@@ -244,17 +244,6 @@ GO
 USE ParquesNacionales
 GO
 
-DROP TABLE IF EXISTS Importacion.VisitasParquesNacionales
-CREATE TABLE Importacion.VisitasParquesNacionales (
-    indiceTiempo     VARCHAR(30),
-    origenVisitantes VARCHAR(30),
-    visitas          INT,
-    observaciones    VARCHAR(500)
-    CONSTRAINT PK_Visitas PRIMARY KEY (indiceTiempo, origenVisitantes)
-)
-GO
-
-
 CREATE OR ALTER PROCEDURE Importacion.sp_ImportarVisitas
 AS
 BEGIN
