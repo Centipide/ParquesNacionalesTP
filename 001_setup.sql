@@ -55,3 +55,5 @@ CREATE SCHEMA Importacion       -- SP de migración + cifrado masivo
 GO
 CREATE SCHEMA Reportes          -- SP de consultas + descifrado
 GO
+CREATE SCHEMA Apis              -- SP para importacion de APIs
+Go
