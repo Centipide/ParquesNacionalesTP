@@ -1,4 +1,4 @@
-# Sistema de Gestión de Parques Nacionales
+﻿# Sistema de Gestión de Parques Nacionales
 
 **Universidad Nacional de La Matanza**  
 **Departamento de Ingeniería e Investigaciones Tecnológicas**  
@@ -24,7 +24,7 @@
 
 ## Instrucciones de Ejecución
 
-Para garantizar el correcto funcionamiento del ecosistema relacional de la base de datos, toda la solución se encuentra unificada dentro del archivo `ParquesNacionales.ssmssln`. Los scripts deben ejecutarse de forma secuencial desde **SQL Server Management Studio (SSMS)** respetando la estructura de nomenclatura **`XYY`** detallada a continuación.
+Para garantizar el correcto funcionamiento del ecosistema relacional de la base de datos, toda la solución se encuentra unificada dentro del archivo `Com5600G05_ParquesNacionales.ssmssln`. Los scripts deben ejecutarse de forma secuencial desde **SQL Server Management Studio (SSMS)** respetando la estructura de nomenclatura **`XYY`** detallada a continuación.
 
 ### Explicación de la Nomenclatura (`XYY`)
 Para facilitar el despliegue automático del motor evitando conflictos de dependencias, cada script utiliza un prefijo jerárquico:

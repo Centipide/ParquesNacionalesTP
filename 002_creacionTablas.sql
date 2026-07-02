@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- Fecha: 2025-06-12
 -- Descripción: Creación de todas las tablas con sus PKs, FKs,
 --              checks y restricciones de integridad.
@@ -11,7 +11,7 @@
 --  Martinez Souto, Joaquin
 -- ============================================================
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- ==========================================================
@@ -400,7 +400,7 @@ GO
 -- ESQUEMA Importacion
 -- ==========================================================
 
-CREATE TABLE Importacion.VisitasParquesNacionales (
+CREATE TABLE Importacion.VisitasCom5600G05_ParquesNacionales (
     indiceTiempo     VARCHAR(30),
     origenVisitantes VARCHAR(30),
     visitas          INT,

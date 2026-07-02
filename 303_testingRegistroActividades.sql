@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- Fecha: 2025-06-18
 -- Descripción: Scripts de Testing para logicaRegistroActividad
 -- ============================================================
@@ -15,7 +15,7 @@
 -- CASOS EXITOSOS - RegistrarActividadRealizada
 -- ============================================================
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -146,7 +146,7 @@ GO
 
 -- *********** Actividad Programada inexistente ***************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION;
@@ -166,7 +166,7 @@ GO
 
 -- ******* Actividad en estado no Programada ****************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION;
@@ -251,7 +251,7 @@ GO
 
 -- ************* Sin contrataciones *********************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION;
@@ -332,7 +332,7 @@ GO
 
 -- ********************** Sin contrataciones confirmadas *******************************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION;
@@ -459,7 +459,7 @@ GO
 -- 3. Las contrataciones Confirmadas pasen a Cancelada.
 -- 4. Las contrataciones en otros estados no se modifiquen.
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -614,7 +614,7 @@ GO
 
 -- ********************** id Actividad Programada inexistente *******************************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION;
@@ -638,7 +638,7 @@ GO
 
 -- ********** Actividad no esta en estado Programada *********
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION;
@@ -730,7 +730,7 @@ GO
 -- Verifica que al cancelar una contratación Confirmada
 -- su estado pase a Cancelada.
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -870,7 +870,7 @@ GO
 
 -- ********************** id de Contratacion no existe *******************************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION;
@@ -891,7 +891,7 @@ GO
 
 -- ********************** Contratacion no esta en estado Confirmada *******************************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION;

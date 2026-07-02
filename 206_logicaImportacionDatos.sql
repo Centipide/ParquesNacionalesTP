@@ -17,7 +17,7 @@
 -- FORMATO: .txt (Pero con formato .json)
 -- RUTA: C:\Datasets\af_ha007__rea_protegida_argentina_geojson.txt
 -- ============================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 CREATE OR ALTER PROCEDURE Importacion.sp_ImportarParques
@@ -241,7 +241,7 @@ GO
 -- https://datos.yvera.gob.ar/dataset/parques-nacionales/archivo/a570af75-ed33-427c-9797-980fc0cd8fd1
 -- FORMATO: .csv
 -- ============================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 CREATE OR ALTER PROCEDURE Importacion.sp_ImportarVisitas
@@ -319,12 +319,12 @@ BEGIN
         END
 
         IF EXISTS (
-            SELECT 1 FROM Importacion.VisitasParquesNacionales
+            SELECT 1 FROM Importacion.VisitasCom5600G05_ParquesNacionales
             WHERE indiceTiempo = @indiceTiempo
             AND origenVisitantes = @origen
         )
             BEGIN
-                UPDATE Importacion.VisitasParquesNacionales
+                UPDATE Importacion.VisitasCom5600G05_ParquesNacionales
                 SET visitas = @visitasInt,
                     observaciones = @observaciones
                 WHERE indiceTiempo = @indiceTiempo
@@ -335,7 +335,7 @@ BEGIN
 
         ELSE
             BEGIN
-                INSERT INTO Importacion.VisitasParquesNacionales
+                INSERT INTO Importacion.VisitasCom5600G05_ParquesNacionales
                     (indiceTiempo, origenVisitantes, visitas, observaciones)
                 VALUES
                     (@indiceTiempo, @origen, @visitasInt, @observaciones)
@@ -371,7 +371,7 @@ GO
 -- FORMATO: .csv
 -- RUTA: C:\Datasets\registro-de-guias-de-turismo.csv
 -- ============================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 CREATE OR ALTER PROCEDURE Importacion.sp_ImportarGuias
@@ -480,19 +480,40 @@ BEGIN
 
         SET @periodoInt = CAST(@periodoStr AS INT)
 
-        IF EXISTS (
-            SELECT 1 FROM Guias.Guia
-            WHERE tipoDocumento = @tipoDoc
-            AND nroDocumento = @numeroDoc
-        )
-            BEGIN
-                SELECT @idGuia = idGuia, @fechaNac = fechaNacimiento, @email = email, @vigAut = vigenciaAutorizacion
-                FROM Guias.Guia
-                WHERE tipoDocumento = @tipoDoc
-                AND nroDocumento = @numeroDoc
+        -- Definimos la frase clave por defecto para guías (la misma del script 203)
+        DECLARE @ClaveGuias NVARCHAR(128) = 'ClavesGuias';
 
-                EXEC Guias.sp_ModificacionGuia
-                    @idGuia, @nombre, @apellido, @fechaNac, @tipoDoc, @numeroDoc, @email, @vigAut
+        SET @idGuia = NULL;
+
+        -- Buscamos si el guía ya existe y traemos sus datos actuales (soportando encriptación)
+        IF EXISTS (SELECT 1 FROM sys.parameters WHERE object_id = OBJECT_ID('Guias.sp_AltaGuia') AND name = '@FraseClave')
+        BEGIN
+            SELECT @idGuia = idGuia, @fechaNac = fechaNacimiento, @email = email, @vigAut = vigenciaAutorizacion
+            FROM Guias.Guia
+            WHERE tipoDocumento = @tipoDoc
+              AND CONVERT(VARCHAR(20), DecryptByPassPhrase(@ClaveGuias, nroDocumentoCifrado, 1, CONVERT(VARBINARY, idGuia))) = @numeroDoc
+        END
+        ELSE
+        BEGIN
+            SELECT @idGuia = idGuia, @fechaNac = fechaNacimiento, @email = email, @vigAut = vigenciaAutorizacion
+            FROM Guias.Guia
+            WHERE tipoDocumento = @tipoDoc
+              AND nroDocumento = @numeroDoc
+        END
+
+        IF @idGuia IS NOT NULL
+            BEGIN
+                -- Validamos si el SP de modificación ya pide frase clave (Paso 3 ejecutado)
+                IF EXISTS (SELECT 1 FROM sys.parameters WHERE object_id = OBJECT_ID('Guias.sp_ModificacionGuia') AND name = '@FraseClave')
+                BEGIN
+                    EXEC Guias.sp_ModificacionGuia
+                        @idGuia, @nombre, @apellido, @fechaNac, @tipoDoc, @numeroDoc, @email, @vigAut, @ClaveGuias
+                END
+                ELSE
+                BEGIN
+                    EXEC Guias.sp_ModificacionGuia
+                        @idGuia, @nombre, @apellido, @fechaNac, @tipoDoc, @numeroDoc, @email, @vigAut
+                END
 
                 SET @modCont += 1
             END
@@ -501,8 +522,17 @@ BEGIN
             BEGIN
                 SET @emailDin = CONCAT(TRIM(@nombre), TRIM(@numeroDoc), '@gmail.com')
 
-                EXEC Guias.sp_AltaGuia
-                    @nombre, @apellido, '2000-01-01', @tipoDoc, @numeroDoc, @emailDin, '2030-01-01'
+                -- Validamos si el SP de alta ya pide frase clave (Paso 3 ejecutado)
+                IF EXISTS (SELECT 1 FROM sys.parameters WHERE object_id = OBJECT_ID('Guias.sp_AltaGuia') AND name = '@FraseClave')
+                BEGIN
+                    EXEC Guias.sp_AltaGuia
+                        @nombre, @apellido, '2000-01-01', @tipoDoc, @numeroDoc, @emailDin, '2030-01-01', @ClaveGuias
+                END
+                ELSE
+                BEGIN
+                    EXEC Guias.sp_AltaGuia
+                        @nombre, @apellido, '2000-01-01', @tipoDoc, @numeroDoc, @emailDin, '2030-01-01'
+                END
 
                 SET @addCont += 1
             END

@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- Fecha: 2025-07-02
 -- Descripción: Testing de las SP para las APIs
 -- 
@@ -14,7 +14,7 @@
 -- ============================================================
 -- API para la cotizacion del dolar oficial
 -- ============================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 EXEC Apis.sp_ImportarDolarOficial
@@ -25,7 +25,7 @@ EXEC Reportes.sp_IngresosPorPeriodo
 -- ============================================================
 -- API para importar feriados
 -- ============================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 EXEC Apis.sp_ImportarFeriados

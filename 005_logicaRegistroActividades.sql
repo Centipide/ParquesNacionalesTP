@@ -1,4 +1,4 @@
--- ========================================================================
+﻿-- ========================================================================
 -- UNIVERSIDAD NACIONAL DE LA MATANZA
 -- Asignatura: 3641 - Bases de Datos Aplicada
 -- Objetivo del Código: Creación de la logica de negocia para Registro
@@ -29,7 +29,7 @@
 
 
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 CREATE OR ALTER PROCEDURE Actividades.sp_AltaActividadRealizada

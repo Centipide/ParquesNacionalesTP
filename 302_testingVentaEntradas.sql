@@ -1,4 +1,4 @@
--- ========================================================================
+﻿-- ========================================================================
 -- UNIVERSIDAD NACIONAL DE LA MATANZA
 -- Asignatura: 3641 - Bases de Datos Aplicada
 -- Componente del Grupo: Bonfigli, Leonardo
@@ -11,7 +11,7 @@
 --  Martinez Souto, Joaquin
 -- ============================================================
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- ========================================================================

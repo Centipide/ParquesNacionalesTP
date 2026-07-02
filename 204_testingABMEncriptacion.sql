@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- Fecha: 2025-06-25
 -- Descripción: Testing - Ejecucion de sps para cifrar 
 --              datos sensibles
@@ -19,7 +19,7 @@
 -- CASO EXITOSO - Visitante
 -- ============================================================
 
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 BEGIN TRANSACTION;
@@ -94,7 +94,7 @@ GO
 -- CASO EXITOSO - Guardaparque
 -- ============================================================
 
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 BEGIN TRANSACTION;
@@ -165,7 +165,7 @@ GO
 -- CASO DE ERROR - Alta GuardaParque
 -- ************************************************************
 
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 -- tipo y nro de documento repetidos
@@ -208,7 +208,7 @@ GO
 -- CASO DE ERROR - Modificación Guardaparque
 -- ************************************************************
 
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 -- Documento repetido
@@ -277,7 +277,7 @@ GO
 -- CASOS EXITOSO - Guia
 -- ============================================================
 
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 BEGIN TRANSACTION;
@@ -345,7 +345,7 @@ GO
 -- CASO DE ERROR - Alta Guia
 -- ************************************************************
 
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 BEGIN TRANSACTION;
@@ -388,7 +388,7 @@ GO
 -- CASO DE ERROR - Modificacion Guia
 -- ************************************************************
 
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 -- documento repetido

@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- Fecha: 2025-07-02
 -- Descripción: Creación de los SP para la importacion
 --              de las APIs.
@@ -22,7 +22,7 @@ GO
 -- API para la cotizacion del dolar oficial
 -- https://dolarapi.com/docs/argentina/operations/get-dolar-oficial.html
 -- ============================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 CREATE OR ALTER PROCEDURE Apis.sp_ImportarDolarOficial
@@ -93,7 +93,7 @@ GO
 -- API para traer los feriados en Argentina
 -- https://argentinadatos.com/docs/operations/get-feriados
 -- ============================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 CREATE OR ALTER PROCEDURE Apis.sp_ImportarFeriados

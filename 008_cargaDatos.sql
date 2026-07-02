@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- Fecha: 2025-06-25
 -- Descripción: Creación de script de carga de datos.
 -- ============================================================
@@ -9,7 +9,7 @@
 --  Casale Benavente, Pedro Santino
 --  Martinez Souto, Joaquin
 -- ============================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 DECLARE @idTipoP INT

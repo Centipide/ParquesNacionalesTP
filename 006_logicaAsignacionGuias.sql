@@ -1,4 +1,4 @@
--- ========================================================================
+﻿-- ========================================================================
 -- UNIVERSIDAD NACIONAL DE LA MATANZA
 -- Asignatura: 3641 - Bases de Datos Aplicada
 -- Objetivo del Código: Lógica Avanzada de Asignacion de Guias
@@ -10,7 +10,7 @@
 --  Martinez Souto, Joaquin
 -- ============================================================
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 CREATE OR ALTER PROCEDURE Guias.sp_AsignacionGuia

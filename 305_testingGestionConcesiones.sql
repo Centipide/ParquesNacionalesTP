@@ -1,4 +1,4 @@
--- ========================================================================
+﻿-- ========================================================================
 --  UNIVERSIDAD NACIONAL DE LA MATANZA
 --  Asignatura: 3641 - Bases de Datos Aplicada
 --  Objetivo del Código: Script de Testing 1:1 para Lógica de Concesiones
@@ -10,7 +10,7 @@
 --  Martinez Souto, Joaquin
 -- ============================================================
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- ========================================================================

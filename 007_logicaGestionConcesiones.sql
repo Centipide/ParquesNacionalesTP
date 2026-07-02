@@ -1,4 +1,4 @@
--- ========================================================================
+﻿-- ========================================================================
 --  UNIVERSIDAD NACIONAL DE LA MATANZA
 --  Departamento de Ingeniería e Investigaciones Tecnológicas
 --  Asignatura: 3641 - Bases de Datos Aplicada
@@ -11,7 +11,7 @@
 --  Martinez Souto, Joaquin
 -- ============================================================
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 -- ========================================================================
 -- 1. PROCESO: CANCELACIÓN ANTICIPADA / RESCISIÓN DE CONTRATO

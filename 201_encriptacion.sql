@@ -20,7 +20,7 @@
 
 --++++++++++++++++++++++++ Visitante ++++++++++++++++++++++++
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 IF NOT EXISTS (

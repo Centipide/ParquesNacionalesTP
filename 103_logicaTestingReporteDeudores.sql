@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- Fecha: 2025-06-25
 -- Descripción: Concesiones atrasadas en los pagos,
 -- detallando meses y montos.
@@ -13,7 +13,7 @@
 -- ============================================================
 -- 3. REPORTE DE DEUDORES
 -- ============================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 CREATE OR ALTER PROCEDURE Reportes.sp_ConcesionesDeudoras

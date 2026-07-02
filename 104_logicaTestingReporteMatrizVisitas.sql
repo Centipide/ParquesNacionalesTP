@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- Fecha: 2025-06-25
 -- Descripción: Tabla cruzada mostrando visitas
 -- por mes y parque.
@@ -13,7 +13,7 @@
 -- ========================================================================
 -- 4. MATRIZ DE VISITAS
 -- ========================================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 CREATE OR ALTER PROCEDURE Reportes.sp_MatrizVisitasXML

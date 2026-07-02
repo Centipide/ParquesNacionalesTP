@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- Fecha: 2025-06-25
 -- Descripción: Listado de parques y vector anidado con
 -- concesiones
@@ -13,7 +13,7 @@
 -- ============================================================
 -- 5. PARQUES CON CONCESIONES ANIDADAS
 -- ============================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 CREATE OR ALTER PROCEDURE Reportes.sp_ParquesConConcesionesXML

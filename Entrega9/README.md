@@ -1,6 +1,6 @@
-# Entrega 9: Aplicación Web de Gestión e Integración - Grupo 5
+﻿# Entrega 9: Aplicación Web de Gestión e Integración - Grupo 5
 
-Para cumplir con los requerimientos de la **Novena Entrega**, desarrollamos una aplicación web ágil utilizando **Spring Boot 4.x**, **JPA/Hibernate** y **Thymeleaf**. El sistema implementa una arquitectura limpia por capas y se conecta de forma nativa a la base de datos relacional `ParquesNacionales` en SQL Server.
+Para cumplir con los requerimientos de la **Novena Entrega**, desarrollamos una aplicación web ágil utilizando **Spring Boot 4.x**, **JPA/Hibernate** y **Thymeleaf**. El sistema implementa una arquitectura limpia por capas y se conecta de forma nativa a la base de datos relacional `Com5600G05_ParquesNacionales` en SQL Server.
 
 ### Objetivos Implementados
 1. **Módulo ABM Completo:** Gestión de operaciones sobre la tabla `Ventas.visitante`, forzando a que las inserciones, modificaciones y bajas se ejecuten estrictamente a través de los Procedimientos Almacenados de la *Entrega 3*.

@@ -1,6 +1,6 @@
--- ============================================================
+﻿-- ============================================================
 -- Fecha: 2025-06-12
--- Descripción: Creación de la base de datos ParquesNacionales
+-- Descripción: Creación de la base de datos Com5600G05_ParquesNacionales
 --              y los esquemas de organización lógica.
 -- ============================================================
 -- ============================================================
@@ -18,12 +18,12 @@ ALTER LOGIN sa WITH PASSWORD = 'Grupo05_tp2026';
 ALTER LOGIN sa ENABLE;
 GO
 
-IF EXISTS (SELECT name FROM sys.databases WHERE name = N'ParquesNacionales')
+IF EXISTS (SELECT name FROM sys.databases WHERE name = N'Com5600G05_ParquesNacionales')
 BEGIN
     PRINT 'La base de datos existe. Procediendo a eliminarla...';
     
-    ALTER DATABASE ParquesNacionales SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE ParquesNacionales;
+    ALTER DATABASE Com5600G05_ParquesNacionales SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE Com5600G05_ParquesNacionales;
 END
 ELSE
 BEGIN
@@ -31,11 +31,11 @@ BEGIN
 END
 GO
 
-CREATE DATABASE ParquesNacionales
+CREATE DATABASE Com5600G05_ParquesNacionales
     COLLATE Modern_Spanish_CI_AS;
 GO
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- Esquemas ---

@@ -10,7 +10,7 @@
 -- ============================================================
 
 -- TABLA Visitante
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 CREATE OR ALTER PROCEDURE Ventas.sp_AltaVisitante
@@ -19,7 +19,7 @@ CREATE OR ALTER PROCEDURE Ventas.sp_AltaVisitante
     @email     VARCHAR(100) = NULL,
     @direccion VARCHAR(100) = NULL,
     @telefono  VARCHAR(20) = NULL,
-    @FraseClave NVARCHAR(128)
+    @FraseClave NVARCHAR(128) = 'claveVisitantes'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -68,7 +68,7 @@ CREATE OR ALTER PROCEDURE Ventas.sp_ModificacionVisitante
     @email       VARCHAR(100) = NULL,
     @direccion   VARCHAR(100) = NULL,
     @telefono    VARCHAR(20) = NULL,
-    @FraseClave  NVARCHAR(128)
+    @FraseClave  NVARCHAR(128) = 'claveVisitantes'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -116,7 +116,7 @@ CREATE OR ALTER PROCEDURE Personal.sp_AltaGuardaparque
     @nroDocumento       VARCHAR(20),
     @email              VARCHAR(150),
     @fechaIngresoCargo  DATE,
-    @FraseClave         NVARCHAR(125)
+    @FraseClave         NVARCHAR(125) = 'ClaveGuardaparques'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -183,7 +183,7 @@ CREATE OR ALTER PROCEDURE Personal.sp_ModificacionGuardaparque
     @fechaEgresoCargo   DATE,
     @motivoEgreso       VARCHAR(300),
     @estaActivo         BIT,
-    @FraseClave         NVARCHAR(125)
+    @FraseClave         NVARCHAR(125) = 'ClaveGuardaparques'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -247,7 +247,7 @@ CREATE OR ALTER PROCEDURE Guias.sp_AltaGuia
     @nroDocumento         VARCHAR(20),
     @email                VARCHAR(150),
     @vigenciaAutorizacion DATE,
-    @FraseClave           NVARCHAR(125)
+    @FraseClave           NVARCHAR(125) = 'ClavesGuias'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -313,7 +313,7 @@ CREATE OR ALTER PROCEDURE Guias.sp_ModificacionGuia
     @nroDocumento         VARCHAR(20),
     @email                VARCHAR(150),
     @vigenciaAutorizacion DATE,
-    @FraseClave           NVARCHAR(125)
+    @FraseClave           NVARCHAR(125) = 'ClavesGuias'
 AS
 BEGIN
     SET NOCOUNT ON;

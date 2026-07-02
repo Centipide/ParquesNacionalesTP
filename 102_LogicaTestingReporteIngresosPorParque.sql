@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- Fecha: 2025-06-25
 -- Descripción: Reporte de ingresos por semana, mes y año, por parque
 -- ============================================================
@@ -9,7 +9,7 @@
 --  Martinez Souto, Joaquin
 -- ============================================================
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 CREATE OR ALTER PROCEDURE Reportes.sp_IngresosPorPeriodo

@@ -54,12 +54,6 @@
           <AssociatedConnUserName />
           <FullPath>008_cargaDatos.sql</FullPath>
         </FileNode>
-        <FileNode Name="009_logicaImportacionDatos.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>009_logicaImportacionDatos.sql</FullPath>
-        </FileNode>
         <FileNode Name="101_logicaTestingReporteVisitas.sql">
           <AssociatedConnectionMoniker />
           <AssociatedConnSrvName />
@@ -119,6 +113,12 @@
           <AssociatedConnSrvName />
           <AssociatedConnUserName />
           <FullPath>205_Roles.sql</FullPath>
+        </FileNode>
+        <FileNode Name="206_logicaImportacionDatos.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>206_logicaImportacionDatos.sql</FullPath>
         </FileNode>
         <FileNode Name="301_testingABM.sql">
           <AssociatedConnectionMoniker />

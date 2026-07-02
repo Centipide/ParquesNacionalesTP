@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- Fecha: 2025-06-25
 -- Descripción: Migración - Ejecucion de sps para cifrar 
 --              datos sensibles
@@ -10,7 +10,7 @@
 --  Martinez Souto, Joaquin
 -- ============================================================
 
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 SELECT * FROM Guias.Guia

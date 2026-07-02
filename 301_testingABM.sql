@@ -10,13 +10,11 @@
 --  Martinez Souto, Joaquin
 -- ============================================================
 
-USE ParquesNacionales
-GO
 
 -- ************************************************************
 -- CASOS DE ERROR - Parque
 -- ************************************************************
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 -- idTipoParque no existente, nombre vacio, region vacia, provincia vacia, superficie invalida
 BEGIN TRY
@@ -50,7 +48,7 @@ END CATCH
 -- ===========================================================
 -- CASOS EXITOSOS - Parque
 -- ============================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 BEGIN TRANSACTION
@@ -60,11 +58,11 @@ BEGIN TRANSACTION
 
     -- Alta exitosa
     EXEC Parques.sp_AltaTipoParque
-        @nombre = 'Parque Nacional', @descripcion = 'Jurisdiccion nacional'
+        @nombre = 'Parque Nacional de Prueba', @descripcion = 'Jurisdiccion nacional'
 
     SELECT @idTipoParque_TEST = idTipoParque
     FROM Parques.TipoParque
-    WHERE nombre = 'Parque Nacional'
+    WHERE nombre = 'Parque Nacional de Prueba'
 
     EXEC Parques.sp_AltaParque
         @idTipoParque = @idTipoParque_TEST, @nombre = 'Parque Nacional Nahuel Huapi',
@@ -133,7 +131,7 @@ END CATCH
 -- ===========================================================
 -- CASOS EXITOSOS - TipoParque
 -- ============================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 BEGIN TRANSACTION
@@ -142,18 +140,17 @@ BEGIN TRANSACTION
 
     -- Alta exitosa
     EXEC Parques.sp_AltaTipoParque
-        @nombre = 'Parque Nacional', @descripcion = 'Jurisdiccion nacional'
+        @nombre = 'Parque Nacional de Prueba', @descripcion = 'Jurisdiccion nacional'
 
     SELECT @idTipoParque_TEST = idTipoParque
     FROM Parques.TipoParque
-    WHERE nombre = 'Parque Nacional'
+    WHERE nombre = 'Parque Nacional de Prueba'
 
     SELECT *
     FROM Parques.TipoParque
 
-    -- Modificación exitosa
     EXEC Parques.sp_ModificacionTipoParque
-        @idTipoParque = @idTipoParque_TEST, @nombre = 'Reserva Natural', @descripcion = ''
+        @idTipoParque = @idTipoParque_TEST, @nombre = 'Reserva Natural de Prueba', @descripcion = ''
 
     SELECT *
     FROM Parques.TipoParque
@@ -172,7 +169,7 @@ ROLLBACK TRANSACTION
 -- ************************************************************
 -- CASOS DE ERROR - Guardaparque
 -- ************************************************************
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 -- nombre no ingresado, apellido no ingresado, fechaNacimiento no ingresada, fechaIngresoCargo no valida
@@ -209,7 +206,7 @@ END CATCH
 -- ===========================================================
 -- CASOS EXITOSOS - Guardaparque
 -- ============================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 BEGIN TRANSACTION
@@ -223,7 +220,7 @@ BEGIN TRANSACTION
 
     SELECT @idGuardaparque_TEST = idGuardaparque
     FROM Personal.Guardaparque
-    WHERE tipoDocumento = 'DNI' AND nroDocumento = '46000000'
+    WHERE nombre = 'Pedro' AND apellido = 'Pedro'
 
     SELECT *
     FROM Personal.Guardaparque
@@ -259,7 +256,7 @@ ROLLBACK TRANSACTION
 -- ************************************************************
 -- CASOS DE ERROR - HistorialGuardaparque
 -- ************************************************************
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 -- idParque no existe, idGuardaparque no existe
@@ -303,7 +300,7 @@ END CATCH
 -- ===========================================================
 -- CASOS EXITOSOS - HistorialGuardaparque
 -- ============================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 BEGIN TRANSACTION
@@ -320,14 +317,14 @@ BEGIN TRANSACTION
 
     SELECT @idGuardaparque_TEST = idGuardaparque
     FROM Personal.Guardaparque
-    WHERE tipoDocumento = 'DNI' AND nroDocumento = '46000000'
+    WHERE nombre = 'Pedro' AND apellido = 'Pedro'
 
     EXEC Parques.sp_AltaTipoParque
-        @nombre = 'Parque Nacional', @descripcion = 'Jurisdiccion nacional'
+        @nombre = 'Parque Nacional de Prueba', @descripcion = 'Jurisdiccion nacional'
 
     SELECT @idTipoParque_TEST = idTipoParque
     FROM Parques.TipoParque
-    WHERE nombre = 'Parque Nacional'
+    WHERE nombre = 'Parque Nacional de Prueba'
 
     EXEC Parques.sp_AltaParque
         @idTipoParque = @idTipoParque_TEST, @nombre = 'Parque Nacional Nahuel Huapi',
@@ -378,7 +375,7 @@ ROLLBACK TRANSACTION
 -- CASOS EXITOSOS - TipoActividadTuristica
 -- ============================================================
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -425,7 +422,7 @@ ROLLBACK TRANSACTION;
 -- ********************** Alta *******************************
 
 -- descripcion vacia
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION;
@@ -448,7 +445,7 @@ ROLLBACK TRANSACTION;
 
 -- id no encontrado
 -- descripcion vacia
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION;
@@ -471,7 +468,7 @@ ROLLBACK TRANSACTION;
 -- ********************** Baja *******************************
 
 -- id no encontrado
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION;
@@ -497,7 +494,7 @@ ROLLBACK TRANSACTION;
 -- CASOS EXITOSOS - ActividadTuristica
 -- ============================================================
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -578,7 +575,7 @@ GO
 
 -- ********************** Alta *******************************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- id de Parque no existe,
@@ -619,7 +616,7 @@ GO
 -- duracion debe ser > 0
 -- cupo maximo > 0
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION;
@@ -648,7 +645,7 @@ GO
 -- ********************** Baja *******************************
 
 -- id Actividad Turistica no existe
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION;
@@ -673,7 +670,7 @@ GO
 -- CASOS EXITOSOS - GuiaAutorizacion
 -- ============================================================
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -759,7 +756,7 @@ GO
 
 -- ********************** Alta *******************************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- id de Guia no existe
@@ -784,7 +781,7 @@ ROLLBACK TRANSACTION;
 GO
 
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- El guia ya esta autorizado para esta actividad
@@ -864,7 +861,7 @@ GO
 
 -- ********************** Baja *******************************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- No existe una autorizacion para ese guia y actividad
@@ -893,7 +890,7 @@ GO
 -- CASOS EXITOSOS - ActividadProgramada
 -- ============================================================
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -1000,7 +997,7 @@ GO
 
 -- ********************** Alta *******************************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- id de Guia no existe
@@ -1031,7 +1028,7 @@ ROLLBACK TRANSACTION;
 GO
 
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- Ya existe una actividad programada con esos datos
@@ -1119,7 +1116,7 @@ ROLLBACK TRANSACTION;
 GO
 
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- El guia no esta autorizado para realizar esta actividad
@@ -1199,7 +1196,7 @@ GO
 
 -- ********************** Modificación *******************************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- id de Actividad Programada no existe
@@ -1240,7 +1237,7 @@ GO
 -- CASOS EXITOSOS - DetalleContratacion
 -- ============================================================
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -1298,7 +1295,7 @@ GO
 
 -- ********************** Alta *******************************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- id de Venta no existe
@@ -1324,7 +1321,7 @@ GO
 
 -- ********************** Baja *******************************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- id de Detalle Contratacion no existe
@@ -1351,7 +1348,7 @@ GO
 -- CASOS EXITOSOS - Contratacion
 -- ============================================================
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -1489,7 +1486,7 @@ GO
 
 -- ********************** Alta *******************************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- id de Detalle Contratacion no existe
@@ -1521,7 +1518,7 @@ GO
 
 -- ********************** Modificación *******************************
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 -- id de Contratacion no existe
@@ -1555,7 +1552,7 @@ GO
 
 
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 -- ========================================================================
 -- TESTING DE EMPRESA CONCESIONARIA
@@ -2110,9 +2107,9 @@ BEGIN TRY
         @telefono = '1144332211';
 
     PRINT 'Evidencia post-alta:';
-    SELECT * FROM Ventas.Visitante WHERE email = 'carlos@test.com';
+    SELECT * FROM Ventas.Visitante WHERE nombre = 'TEST_Carlos' AND apellido = 'Pellegrini';
 
-    SELECT @idVisitanteTest = idVisitante FROM Ventas.Visitante WHERE email = 'carlos@test.com';
+    SELECT @idVisitanteTest = idVisitante FROM Ventas.Visitante WHERE nombre = 'TEST_Carlos' AND apellido = 'Pellegrini';
 
     -- 2. Test Modificación Exitosa
     EXEC Ventas.sp_ModificacionVisitante
@@ -2470,7 +2467,7 @@ GO
 -- CASOS EXITOSOS: GUIA (ALTA --> MODIFICACION --> BAJA)
 --===============================================================================
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -2490,7 +2487,7 @@ BEGIN TRANSACTION
 
     SELECT @idGuiaTest=idGuia
     FROM Guias.Guia
-    WHERE email='test@guia.com';
+    WHERE nombre='TEST_Joaquin' AND apellido='TEST_Martinez';
 
      -- Deberia devolver una fila creada y activa
     PRINT ' [EVIDENCIA] Registro insertado en la tabla:';
@@ -2538,7 +2535,7 @@ GO
 -- ============================================================
 
 ----------------------------------ALTA-------------------------------------
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -2587,7 +2584,7 @@ ROLLBACK TRANSACTION;
 GO
 --------------------MODIFICACION---------------------------------
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -2613,7 +2610,7 @@ GO
 
 ----------------------BAJA---------------------------------------
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -2674,7 +2671,7 @@ GO
 -- CASOS ERRORES CONTROLADOS - HABILITACION (ALTA --> MODIFICACION -- > BAJA)
 -- ==========================================================================
 ----------------------ALTA----------------------------
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -2692,7 +2689,7 @@ END CATCH;
 ROLLBACK TRANSACTION;
 GO
 -----------------------------Modificacion-------------
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -2711,7 +2708,7 @@ END CATCH;
 ROLLBACK TRANSACTION;
 GO
 
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 --------------------BAJA---------------
 BEGIN TRANSACTION
@@ -2760,7 +2757,7 @@ GO
 -- CASOS EXISTOSOS: - GuiaHabilitacion (ALTA-- > BAJA)
 -- ==========================================================================
 
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 BEGIN TRANSACTION
@@ -2803,7 +2800,7 @@ GO
 -- CASOS ERRORES CONTROLADOS: - GuiaHabilitacion (ALTA-- > BAJA)
 -- ==========================================================================
 ----------------------ALTA----------------------------
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 --ids inexistentes
 BEGIN TRANSACTION
@@ -2911,7 +2908,7 @@ GO
 -- ==========================================================================
 
 ----------------------ALTA----------------------------
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -2948,7 +2945,7 @@ END CATCH;
 ROLLBACK TRANSACTION;
 GO
 -----------------------------Modificacion-------------
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 
 BEGIN TRANSACTION
@@ -3013,7 +3010,7 @@ GO
 -- ==========================================================================
 -- CASOS EXITOSOS: - GuiaTitulo (ALTA--> BAJA)
 -- ==========================================================================
-USE ParquesNacionales
+USE Com5600G05_ParquesNacionales
 GO
 
 BEGIN TRANSACTION
@@ -3058,7 +3055,7 @@ GO
 -- ==========================================================================
 
 ----------------------ALTA----------------------------
-USE ParquesNacionales;
+USE Com5600G05_ParquesNacionales;
 GO
 --ids inexistentes
 BEGIN TRANSACTION
